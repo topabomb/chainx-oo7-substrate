@@ -4,7 +4,7 @@ const { nodeService } = require('./nodeService')
 const { SubscriptionBond } = require('./subscriptionBond')
 const { BlockNumber, Hash } = require('./types');
 const { decode, encode } = require('./codec');
-const { stringToBytes, hexToBytes, bytesToHex } = require('./utils')
+const { stringToBytes, hexToBytes, bytesToHex,toLE } = require('./utils')
 const { StorageBond } = require('./storageBond')
 const metadata = require('./metadata')
 
@@ -31,7 +31,9 @@ let runtime = { core: (() => {
 		n => [...Array(n)].map((_, i) =>
 			new SubscriptionBond('state_storage',
 				[[ '0x' + bytesToHex(stringToBytes(":auth:")) + bytesToHex(toLE(i, 4)) ]],
-				r => decode(hexToBytes(r.changes[0][1]), 'AccountId')
+				r => {
+					return decode(hexToBytes(r.changes[0][1]), 'AccountId');
+				}
 			)
 		), 2)
 	let code = new SubscriptionBond('state_storage', [['0x' + bytesToHex(stringToBytes(':code'))]], r => hexToBytes(r.changes[0][1]))
