@@ -101,4 +101,4 @@ function ss58Decode(ss58, lookupIndex) {
 	return result
 }
 
-module.exports = { ss58Decode, ss58Encode }
+module.exports = { ss58Decode, ss58Encode, setNetworkDefault }

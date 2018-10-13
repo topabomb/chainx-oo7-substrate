@@ -7,7 +7,7 @@ const { decode, encode } = require('./src/codec');
 window=global;
 
 //设置节点
-substrate.setNodeUri('ws://127.0.0.1:8082');
+substrate.setNodeUri(['ws://127.0.0.1:8082']);
 
 var alice_seed='Alice';
 var alice_account_58='5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ';

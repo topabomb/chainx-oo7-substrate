@@ -3,7 +3,7 @@ var substrate=require('oo7-substrate');
 window=global;
 
 //设置节点
-substrate.setNodeUri('ws://127.0.0.1:8082');
+substrate.setNodeUri(['ws://127.0.0.1:8082']);
 
 var chain=substrate.chain;
 

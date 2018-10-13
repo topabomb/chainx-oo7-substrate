@@ -1,4 +1,5 @@
 var WebSocket = require('ws');
+
 const subscriptionKey = {
 	author_submitAndWatchExtrinsic: {
 		notification: 'author_extrinsicUpdate',
@@ -17,7 +18,7 @@ const subscriptionKey = {
 	}
 }
 
-let uri = 'ws://127.0.0.1:8082'
+let uri = ['ws://127.0.0.1:8802']
 
 function setNodeUri(u) {
 	uri = u
@@ -30,14 +31,18 @@ class NodeService {
 		this.onReply = {}
 		this.onceOpen = []
 		this.index = 1
-		this.start(uri)
+		this.uriIndex = 0
+		this.backoff = 0
+		this.uri = uri
+		this.start(uri[0])
 	}
 
 	start (uri) {
-		let that = this;
+		let that = this
 		this.ws = new WebSocket(uri)
 		this.ws.onopen = function () {
 			console.log('Connection open')
+			this.backoff = 0
 			let onceOpen = that.onceOpen;
 			that.onceOpen = []
 			window.setTimeout(() => onceOpen.forEach(f => f()), 0)
@@ -53,15 +58,22 @@ class NodeService {
 			}
 
 			if (that.reconnect) {
-				global.clearTimeout(that.reconnect)
+				window.clearTimeout(that.reconnect)
 			}
 			// epect a message every 10 seconds or we reconnect.
 			if (false) 
-				that.reconnect = global.setTimeout(() => {
+				that.reconnect = window.setTimeout(() => {
 				that.ws.close()
 				delete that.ws
 				that.start()
 			}, 10000)
+		}
+		this.ws.onerror = () => {
+			window.setTimeout(() => {
+				that.uriIndex = (that.uriIndex + 1) % that.uri.length
+				that.start(that.uri[that.uriIndex])
+			}, that.backoff)
+			that.backoff = Math.min(30000, that.backoff + 1000)
 		}
 	}
 
