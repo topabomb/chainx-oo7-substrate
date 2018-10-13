@@ -26,7 +26,7 @@ function setNodeUri(u) {
 }
 
 class NodeService {
-	constructor (uri) {
+	constructor(uri) {
 		this.subscriptions = {}
 		this.onReply = {}
 		this.onceOpen = []
@@ -37,7 +37,7 @@ class NodeService {
 		this.start(uri[0])
 	}
 
-	start (uri) {
+	start(uri) {
 		let that = this
 		this.ws = new WebSocket(uri)
 		this.ws.onopen = function () {
@@ -49,24 +49,33 @@ class NodeService {
 		}
 		this.ws.onmessage = function (msg) {
 			let d = JSON.parse(msg.data)
-//			console.log("Message from node", d)
+			// console.log("Message from node", d)
+
 			if (d.id) {
 				that.onReply[d.id](d)
 				delete that.onReply[d.id];
-			} else if (d.method && d.params && that.subscriptions[d.method] && that.subscriptions[d.method][d.params.subscription]) {
-				that.subscriptions[d.method][d.params.subscription](d.params.result, d.method)
+			} else if (d.method && d.params) {
+				// ws响应太快 ，导致回调还没建立好
+				if (!(that.subscriptions[d.method] && that.subscriptions[d.method][d.params.subscription])) {
+					window.setTimeout(() => {
+						that.subscriptions[d.method][d.params.subscription](d.params.result, d.method)
+					}, 500)
+				} else {
+					that.subscriptions[d.method][d.params.subscription](d.params.result, d.method)
+				}
+
 			}
 
 			if (that.reconnect) {
 				window.clearTimeout(that.reconnect)
 			}
 			// epect a message every 10 seconds or we reconnect.
-			if (false) 
+			if (false)
 				that.reconnect = window.setTimeout(() => {
-				that.ws.close()
-				delete that.ws
-				that.start()
-			}, 10000)
+					that.ws.close()
+					delete that.ws
+					that.start()
+				}, 10000)
 		}
 		this.ws.onerror = () => {
 			window.setTimeout(() => {
@@ -77,7 +86,7 @@ class NodeService {
 		}
 	}
 
-	request (method, params = []) {
+	request(method, params = []) {
 		let that = this
 		let doSend = () => new Promise((resolve, reject) => {
 			let id = '' + this.index++;
@@ -88,8 +97,8 @@ class NodeService {
 				"params": params
 			};
 			that.ws.send(JSON.stringify(msg))
-//			console.log('Attempting send', msg)
-	
+			//console.log('Attempting send', msg)
+
 			that.onReply[id] = msg => {
 				if (msg.error) {
 					reject(msg.error)
@@ -112,17 +121,23 @@ class NodeService {
 		}
 	}
 
-	subscribe (what, params, callback, errorHandler) {
+	subscribe(what, params, callback, errorHandler) {
 		let that = this
 		return this.request(subscriptionKey[what].subscribe, params).then(id => {
 			let notification = subscriptionKey[what].notification;
 			that.subscriptions[notification] = that.subscriptions[notification] || {}
 			that.subscriptions[notification][id] = callback
-			return { what, id }
+			return {
+				what,
+				id
+			}
 		}).catch(errorHandler)
 	}
 
-	unsubscribe ({what, id}) {
+	unsubscribe({
+		what,
+		id
+	}) {
 		let that = this
 
 		let notification = subscriptionKey[what].notification;
@@ -136,8 +151,8 @@ class NodeService {
 			return result
 		})
 	}
-	
-	finalise () {
+
+	finalise() {
 		delete this.ws;
 	}
 }
@@ -151,4 +166,8 @@ function nodeService() {
 	return s_nodeService;
 }
 
-module.exports = { nodeService, NodeService, setNodeUri };
+module.exports = {
+	nodeService,
+	NodeService,
+	setNodeUri
+};

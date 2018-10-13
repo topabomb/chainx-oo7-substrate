@@ -53,7 +53,9 @@ var runtime=substrate.runtime;
         });
         await runtime.core.heappages.finalise();
 
-
+        await runtime.core.metaData.then(d => {
+            console.log(d);
+        })
 
         //  获取storagekey 
         var storage_hash=storageKey('Balances FreeBalance',alice_account_u8);

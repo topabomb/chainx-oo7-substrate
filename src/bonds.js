@@ -63,7 +63,6 @@ let runtimeUp = new RuntimeUp
 let onRuntimeInit = []
 
 function initialiseFromMetadata (m) {
-	
 	if (metadata.set) {
 		metadata.set(m)
 	}
@@ -107,16 +106,13 @@ function initialiseFromMetadata (m) {
 				c[camel(item.name)].help = item.arguments.map(a => a.name)
 			})
 		}
-		
 		runtime[m.prefix] = o
 		calls[m.prefix] = c
 	})
 	m.modules.forEach(m => {
 		if (m.storage) {
 			try {
-				//console.log('looking for augmentation of', m.prefix, `./srml/${m.prefix}`)
 				require(`./srml/${m.prefix}`).augment(runtime, chain)
-				//console.log('Augmented successfully')
 			}
 			catch (e) {
 				if (!e.toString().startsWith('Error: Cannot find module')) {
@@ -140,6 +136,7 @@ function initRuntime (callback = null) {
 					return decode(hexToBytes(blob), 'RuntimeMetadata');
 				})
 				.then(initialiseFromMetadata).catch(function(e){
+					console.log('initialiseFromMetadata Error '+e);
 				})
 		}
 	} else {
