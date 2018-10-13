@@ -29,8 +29,6 @@ function tallyAmounts(x) {
 if (typeof window !== 'undefined') {
 	window.ss58Encode = ss58Encode;
 	window.ss58Decode = ss58Decode;
-	window.ss58Encode = ss58Encode;
-	window.ss58Decode = ss58Decode;
 	window.bytesToHex = bytesToHex;
 	window.stringToBytes = stringToBytes;
 	window.hexToBytes = hexToBytes;

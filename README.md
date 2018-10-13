@@ -5,8 +5,7 @@ This library provides a clean wrapper around all the methods exposed by a Chainx
 
 ```
 npm install
-
 node example.chain.js
 node example.system.js
-
+node example.runtime.js
 ```

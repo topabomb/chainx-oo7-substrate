@@ -1,8 +1,9 @@
 const { ss58Decode } = require('./ss58')
 const { VecU8, AccountId, Hash, VoteThreshold, SlashPreference, Moment, Balance,
 	BlockNumber, AccountIndex, Tuple, TransactionEra } = require('./types')
-const { toLE, leToNumber, bytesToHex } = require('./utils')
+const { toLE, leToNumber,hexToBytes, bytesToHex } = require('./utils')
 const metadata = require('./metadata')
+const TextDecoder=require('util').TextDecoder
 
 const transforms = {
 	RuntimeMetadata: { outerEvent: 'OuterEventMetadata', modules: 'Vec<RuntimeModuleMetadata>' },
@@ -49,6 +50,7 @@ function decode(input, type) {
 
 	let res;
 	let transform = transforms[type];
+	
 	if (transform) {
 		if (typeof transform == 'string') {
 			res = decode(input, transform);
@@ -77,6 +79,7 @@ function decode(input, type) {
 		}
 		res._type = type;
 	} else {
+		
 		switch (type) {
 /*			case 'Call':
 			case 'Proposal': {

@@ -36,10 +36,18 @@ let runtime = { core: (() => {
 				}
 			)
 		), 2)
+	
+	let heappages = new SubscriptionBond('state_storage', [['0x' + bytesToHex(stringToBytes(':heappages'))]], r => decode(hexToBytes(r.changes[0][1]), 'u64'))
+	
+	let storage=storageBond=>new TransformBond((datakey)=> nodeService().request('state_getStorage', [datakey]).then(hexToBytes),[storageBond],[])
+	let sub_storage=(datakey)=>new SubscriptionBond('state_storage', [[datakey]], r => hexToBytes(r.changes[0][1])).subscriptable()
 	let code = new SubscriptionBond('state_storage', [['0x' + bytesToHex(stringToBytes(':code'))]], r => hexToBytes(r.changes[0][1]))
 	let codeHash = new TransformBond(() => nodeService().request('state_getStorageHash', ['0x' + bytesToHex(stringToBytes(":code"))]).then(hexToBytes), [], [chain.head])
 	let codeSize = new TransformBond(() => nodeService().request('state_getStorageSize', ['0x' + bytesToHex(stringToBytes(":code"))]), [], [chain.head])
-	return { authorityCount, authorities, code, codeHash, codeSize }
+	let metaData = new TransformBond(() => nodeService().request('state_getMetadata', []).then(hexToBytes), [], [chain.head])
+
+	return { authorityCount, authorities, code, codeHash, codeSize,heappages ,storage,sub_storage,metaData}
+	
 })() }
 
 let calls = {}
@@ -55,6 +63,7 @@ let runtimeUp = new RuntimeUp
 let onRuntimeInit = []
 
 function initialiseFromMetadata (m) {
+	
 	if (metadata.set) {
 		metadata.set(m)
 	}
@@ -98,15 +107,16 @@ function initialiseFromMetadata (m) {
 				c[camel(item.name)].help = item.arguments.map(a => a.name)
 			})
 		}
+		
 		runtime[m.prefix] = o
 		calls[m.prefix] = c
 	})
 	m.modules.forEach(m => {
 		if (m.storage) {
 			try {
-				console.log('looking for augmentation of', m.prefix, `./srml/${m.prefix}`)
+				//console.log('looking for augmentation of', m.prefix, `./srml/${m.prefix}`)
 				require(`./srml/${m.prefix}`).augment(runtime, chain)
-				console.log('Augmented successfully')
+				//console.log('Augmented successfully')
 			}
 			catch (e) {
 				if (!e.toString().startsWith('Error: Cannot find module')) {
@@ -120,12 +130,17 @@ function initialiseFromMetadata (m) {
 }
 
 function initRuntime (callback = null) {
+	
 	if (onRuntimeInit instanceof Array) {
 		onRuntimeInit.push(callback)
+		
 		if (onRuntimeInit.length === 1) {
-			nodeService().request('state_getMetadata')
-				.then(blob => decode(hexToBytes(blob), 'RuntimeMetadata'))
-				.then(initialiseFromMetadata)
+			nodeService().request('state_getMetadata',[])
+				.then(blob => {
+					return decode(hexToBytes(blob), 'RuntimeMetadata');
+				})
+				.then(initialiseFromMetadata).catch(function(e){
+				})
 		}
 	} else {
 		// already inited runtime

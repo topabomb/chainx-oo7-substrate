@@ -23,15 +23,19 @@
   },
   "homepage": "https://github.com/polkadot-js/oo7-substrate#readme",
   "dependencies": {
+    "@polkadot/util": "^0.30.7",
+    "@polkadot/util-crypto": "^0.30.7",
     "blakejs": "^1.1.0",
+    "base-x": "^3.0.4",
     "bs58": "^4.0.1",
     "change-case": "^3.0.2",
+    "core-js": "^2.5.7",
     "isomorphic-fetch": "^2.2.1",
     "oo7": "^0.7.0",
+    "oo7-substrate": "./",
     "ss58": "^1.0.2",
     "tweetnacl": "^1.0.0",
     "ws": "^6.1.0",
-    "xxhashjs": "^0.2.2",
-    "oo7-substrate": "./"
+    "xxhashjs": "^0.2.2"
   }
 }

@@ -1,5 +1,5 @@
 const nacl = require('tweetnacl');
-const { ss58Encode } = require('./ss58')
+const { ss58Encode,ss58Decode } = require('./ss58')
 const { AccountId } = require('./types')
 const { bytesToHex, hexToBytes, stringToSeed } = require('./utils')
 
