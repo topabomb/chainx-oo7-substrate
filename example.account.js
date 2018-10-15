@@ -1,6 +1,7 @@
 var substrate = require('oo7-substrate');
 const {
-    bytesToHex
+    bytesToHex,
+    toLE
 } = require('./src/utils')
 const {
     AccountId
@@ -15,6 +16,7 @@ const {
     storageKey,
     StorageBond
 } = require('./src/storageBond')
+
 
 window = global;
 
@@ -36,6 +38,18 @@ console.log('address#' + alice_account_address);
 var storage_hash = storageKey('Balances FreeBalance', alice_account_u8);
 console.log('storeagekey#' + storage_hash);
 
+//秘钥管理
+var secretstore = substrate.secretStore();
+
+//注意! 
+//submitFromSeed只是为了适应ychainx的测试链配置，正式环境应该使用 submit方法
+secretstore.submitFromSeed(alice_seed, 'alice');
+var alice = secretstore.find('alice');
+console.log('match alice#' + alice.account.toHex());
+
+secretstore.submit('chainx', 'alan'); //密码
+var alan = secretstore.find('alan');
+console.log('match alan#' + alan.account.toHex());
 
 substrate.runtimeUp.then(() => {
 
@@ -51,16 +65,45 @@ substrate.runtimeUp.then(() => {
         console.log('alice totalBalance#' + alice);
     });
 
+    substrate.runtime.staking.validators.then((data) => {
+        for( var i=0;i<data.length;i++){
+            console.log('['+i+']=>0x' + bytesToHex(data[i].who));
+        }
+        
+    });
+
+    //转账前余额
+    substrate.runtime.balances.freeBalance(alice_account_public).then((alice) => {
+        console.log('before------alice freeBalance#' + alice);
+    });
+    substrate.runtime.balances.freeBalance(alan.account).then((alan) => {
+        console.log('before------alan freeBalance#' + alan);
+    });
+
+    //构造交易参数
+    substrate.calls.balances.transfer(alan.account, 1000).tie((transfer_to_alan) => {
+        //发送交易
+        substrate.post({
+            sender: alice.account,
+            call: transfer_to_alan
+        }).tie((data) => {
+            console.log(data);
+
+            //交易被确认
+            if (data.finalised) {
+                substrate.runtime.balances.freeBalance(alice_account_public).then((alice) => {
+                    console.log('after-------alice freeBalance#' + alice);
+                });
+                substrate.runtime.balances.freeBalance(alan.account).then((alan) => {
+                    console.log('after-------alan freeBalance#' + alan);
+                });
+            }
+
+        });
+    });
+
     //then: 得到返回数据后触发回调，自动调用finalise 取消订阅
     //tie:得到返回数据后触发回调
     //finalise:显式取消订阅
-    
+
 });
-
-    
-
-
-    
-
-   
-

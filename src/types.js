@@ -1,3 +1,25 @@
+function toLE(val, bytes) {
+	let r = new VecU8(bytes);
+	for (var o = 0; val > 0; ++o) {
+		r[o] = val % 256;
+		val /= 256;
+	}
+	return r;
+}
+
+function bytesToHex(uint8arr) {
+	if (!uint8arr) {
+		return '';
+	}
+	var hexStr = '';
+	for (var i = 0; i < uint8arr.length; i++) {
+		var hex = (uint8arr[i] & 0xff).toString(16);
+		hex = (hex.length === 1) ? '0' + hex : hex;
+		hexStr += hex;
+	}
+
+	return hexStr.toLowerCase();
+}
 
 class VecU8 extends Uint8Array {
 	toJSON() {
@@ -6,6 +28,9 @@ class VecU8 extends Uint8Array {
 }
 
 class AccountId extends Uint8Array {
+	toHex(){
+		return bytesToHex(Array.from(this) )
+	}
 	toJSON() {
 		return { _type: 'AccountId', data: Array.from(this) }
 	}

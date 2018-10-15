@@ -3,7 +3,7 @@ const nacl = require('tweetnacl');
 const { generateMnemonic, mnemonicToSeed } = require('bip39')
 const { ss58Encode } = require('./ss58')
 const { AccountId } = require('./types')
-const { bytesToHex, hexToBytes } = require('./utils')
+const { bytesToHex, hexToBytes,stringToSeed } = require('./utils')
 
 let cache = {}
 
@@ -23,6 +23,17 @@ class SecretStore extends Bond {
 		this._load()
 	}
 
+	//just for test
+	submitFromSeed(seed_,name){
+		let seed=stringToSeed(seed_);
+		let key = nacl.sign.keyPair.fromSeed(seed)
+		let account = new AccountId(key.publicKey)
+
+		this._keys.push({seed, name})
+		this._sync();
+
+		return account
+	}
 	submit (phrase, name) {
 		this._keys.push({phrase, name})
 		this._sync()

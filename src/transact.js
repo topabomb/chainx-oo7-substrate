@@ -2,8 +2,10 @@ const { Bond } = require('oo7')
 const { SubscriptionBond } = require('./subscriptionBond')
 const { encode } = require('./codec')
 const { secretStore } = require('./secretStore')
+const {bytesToHex,toLE}=require('./utils')
 const { TransactionEra, AccountIndex } = require('./types')
 const { runtimeUp, runtime, chain } = require('./bonds')
+
 
 class TransactionBond extends SubscriptionBond {
 	constructor (data) {

@@ -34,7 +34,7 @@ var runtime=substrate.runtime;
 
         //获取runtime 代码
         await runtime.core.code.then((code)=>{
-           // console.log('code#'+bytesToHex(code));
+           console.log('code#'+bytesToHex(code));
         });
 
 
