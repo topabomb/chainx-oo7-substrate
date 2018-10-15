@@ -8,4 +8,5 @@ npm install
 node example.chain.js
 node example.system.js
 node example.runtime.js
+node example.account.js
 ```

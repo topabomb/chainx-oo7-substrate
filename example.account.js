@@ -31,22 +31,13 @@ console.log('decode#' + alice_account_u8);
 console.log('public#' + alice_account_public);
 console.log('address#' + alice_account_address);
 
-
-
 //获取storagekey
 // console.log(xxhash(alice_account_u8,128));
 var storage_hash = storageKey('Balances FreeBalance', alice_account_u8);
 console.log('storeagekey#' + storage_hash);
 
 
-
-
-
-
-
-
 substrate.runtimeUp.then(() => {
-
 
     substrate.runtime.balances.transferFee.tie((data) => {
         console.log('transferFee#' + data);
@@ -56,11 +47,13 @@ substrate.runtimeUp.then(() => {
         console.log('alice freeBalance#' + alice);
     });
 
-    substrate.runtime.balances.totalBalance(alice_account_public).tie((alice) => {
+    substrate.runtime.balances.totalBalance(alice_account_public).then((alice) => {
         console.log('alice totalBalance#' + alice);
     });
 
-    
+    //then: 得到返回数据后触发回调，自动调用finalise 取消订阅
+    //tie:得到返回数据后触发回调
+    //finalise:显式取消订阅
     
 });
 

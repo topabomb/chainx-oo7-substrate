@@ -49,7 +49,7 @@ class NodeService {
 		}
 		this.ws.onmessage = function (msg) {
 			let d = JSON.parse(msg.data)
-			// console.log("Message from node", d)
+			//console.log("Message from node", d)
 
 			if (d.id) {
 				that.onReply[d.id](d)
@@ -58,12 +58,13 @@ class NodeService {
 				// ws响应太快 ，导致回调还没建立好
 				if (!(that.subscriptions[d.method] && that.subscriptions[d.method][d.params.subscription])) {
 					window.setTimeout(() => {
-						that.subscriptions[d.method][d.params.subscription](d.params.result, d.method)
+						if (that.subscriptions[d.method] && that.subscriptions[d.method][d.params.subscription]){
+							that.subscriptions[d.method][d.params.subscription](d.params.result, d.method)
+						}
 					}, 500)
 				} else {
 					that.subscriptions[d.method][d.params.subscription](d.params.result, d.method)
 				}
-
 			}
 
 			if (that.reconnect) {
@@ -97,7 +98,7 @@ class NodeService {
 				"params": params
 			};
 			that.ws.send(JSON.stringify(msg))
-			//console.log('Attempting send', msg)
+			// console.log('Attempting send', msg)
 
 			that.onReply[id] = msg => {
 				if (msg.error) {
