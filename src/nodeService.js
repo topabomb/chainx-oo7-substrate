@@ -1,4 +1,4 @@
-var WebSocket = require('ws');
+const WebSocket = process.browser ? window.WebSocket : require('ws');
 
 const subscriptionKey = {
 	author_submitAndWatchExtrinsic: {
