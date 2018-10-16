@@ -23,6 +23,9 @@ class SecretStore extends Bond {
 		this._load()
 	}
 
+	create(){
+		return generateMnemonic();
+	}
 	//just for test
 	submitFromSeed(seed_,name){
 		let seed=stringToSeed(seed_);

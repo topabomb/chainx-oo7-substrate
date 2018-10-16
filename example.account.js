@@ -51,6 +51,13 @@ secretstore.submit('chainx', 'alan'); //密码
 var alan = secretstore.find('alan');
 console.log('match alan#' + alan.account.toHex());
 
+var jack_mnemonic=secretstore.create();// 生成新账户的助记词
+console.log('jack 的助记词'+jack_mnemonic);
+secretstore.submit(jack_mnemonic,'jack');
+var jack=secretstore.find('jack');
+console.log('match jack#' + jack.account.toHex());
+
+
 substrate.runtimeUp.then(() => {
 
     substrate.runtime.balances.transferFee.tie((data) => {
@@ -97,10 +104,37 @@ substrate.runtimeUp.then(() => {
                 substrate.runtime.balances.freeBalance(alan.account).then((alan) => {
                     console.log('after-------alan freeBalance#' + alan);
                 });
+
+                //向jack转账
+                //构造交易参数
+                substrate.calls.balances.transfer(jack.account, 1000).tie((transfer_to_jack) => {
+                    //发送交易
+                    substrate.post({
+                        sender: alice.account,
+                        call: transfer_to_jack
+                    }).tie((data) => {
+                        console.log(data);
+
+                        //交易被确认
+                        if (data.finalised) {
+                            substrate.runtime.balances.freeBalance(alice_account_public).then((alice) => {
+                                console.log('after-------alice freeBalance#' + alice);
+                            });
+                            substrate.runtime.balances.freeBalance(jack.account).then((jack) => {
+                                console.log('after-------jack freeBalance#' + jack);
+                            });
+                        }
+
+                    });
+                });
+                
             }
 
         });
     });
+
+    
+
 
     //then: 得到返回数据后触发回调，自动调用finalise 取消订阅
     //tie:得到返回数据后触发回调
