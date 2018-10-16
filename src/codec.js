@@ -3,7 +3,7 @@ const { VecU8, AccountId, Hash, VoteThreshold, SlashPreference, Moment, Balance,
 	BlockNumber, AccountIndex, Tuple, TransactionEra } = require('./types')
 const { toLE, leToNumber,hexToBytes, bytesToHex } = require('./utils')
 const metadata = require('./metadata')
-const TextDecoder=require('util').TextDecoder
+const TextDecoder= process.browser ? window.TextDecoder : require('util').TextDecoder;
 
 const transforms = {
 	RuntimeMetadata: { outerEvent: 'OuterEventMetadata', modules: 'Vec<RuntimeModuleMetadata>' },
@@ -43,14 +43,14 @@ function decode(input, type) {
 	if (type == 'EventRecord<Event>') {
 		type = 'EventRecord'
 	}
-	
+
 	let dataHex = bytesToHex(input.data.slice(0, 50));
 //	console.log(decodePrefix + 'des >>>', type, dataHex);
 //	decodePrefix +=  "   ";
 
 	let res;
 	let transform = transforms[type];
-	
+
 	if (transform) {
 		if (typeof transform == 'string') {
 			res = decode(input, transform);
@@ -79,7 +79,7 @@ function decode(input, type) {
 		}
 		res._type = type;
 	} else {
-		
+
 		switch (type) {
 /*			case 'Call':
 			case 'Proposal': {
@@ -386,7 +386,7 @@ function encode(value, type = null) {
 	} else if (type == 'TransactionEra') {
 		console.error("TxEra::encode bad", type, value)
 	}
-	
+
 	if (type.match(/^Compact<u[0-9]*>$/)) {
 		if (value < 1 << 6) {
 			return new Uint8Array([value << 2])
