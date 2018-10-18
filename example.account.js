@@ -58,7 +58,12 @@ var jack=secretstore.find('jack');
 console.log('match jack#' + jack.account.toHex());
 
 
+
 substrate.runtimeUp.then(() => {
+
+    substrate.runtime.staking.currentEra.tie((data)=>{
+        console.log('CurrentEra='+data);
+    })
 
     substrate.runtime.balances.transferFee.tie((data) => {
         console.log('transferFee#' + data);
