@@ -1,3 +1,5 @@
+const{ BigNumber} = require('bignumber.js');
+
 function toLE(val, bytes) {
 	let r = new VecU8(bytes);
 	for (var o = 0; val > 0; ++o) {
@@ -80,7 +82,7 @@ class Moment extends Date {
 	}
 }
 
-class Balance extends Number {
+class Balance extends BigNumber {
 	toJSON() { return { _type: 'Balance', data: this+0 } }
 	add(b) { return new Balance(this + b) }
 	sub(b) { return new Balance(this - b) }
