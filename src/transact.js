@@ -13,7 +13,7 @@ class TransactionBond extends SubscriptionBond {
 	}
 }
 
-function composeTransaction (sender, call, index, era, checkpoint, senderAccount) {
+function composeTransaction (sender, call, index, era, checkpoint, senderAccount, secretKey) {
 	return new Promise((resolve, reject) => {
 		if (typeof sender == 'string') {
 			sender = ss58Decode(sender)
@@ -28,8 +28,8 @@ function composeTransaction (sender, call, index, era, checkpoint, senderAccount
 		], [
 			'Index', 'Call', 'TransactionEra', 'Hash'
 		])
-	
-		let signature = secretStore().sign(senderAccount, e)
+
+		signature = secretKey ? secretStore().signWithSecret(secretKey, e) : secretStore().sign(senderAccount, e)
 		let signedData = encode(encode({
 			_type: 'Transaction',
 			version: 0x81,
@@ -49,7 +49,7 @@ function composeTransaction (sender, call, index, era, checkpoint, senderAccount
 //   longevity?
 //   index?
 // }
-function post(tx) {
+function post(tx, secretKey) {
 	return Bond.all([tx, chain.height, runtimeUp]).map(([o, height, unused]) => {
 		let {sender, call, index, longevity, compact} = o
 		// defaults
@@ -84,8 +84,8 @@ function post(tx) {
 			index: index || runtime.system.accountNonce(senderAccount),
 			senderAccount
 		}
-	}, 2).latched(false).map(o => 
-		o && composeTransaction(o.sender, o.call, o.index, o.era, o.eraHash, o.senderAccount)
+	}, 2).latched(false).map(o =>
+		o && composeTransaction(o.sender, o.call, o.index, o.era, o.eraHash, o.senderAccount, secretKey)
 	).map(composed => {
 		return composed ? new TransactionBond(composed) : { signing: true }
 	})

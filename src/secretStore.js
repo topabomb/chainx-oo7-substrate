@@ -52,7 +52,7 @@ class SecretStore extends Bond {
 	}
 
 	find (identifier) {
-		if (this._keys.indexOf(identifier) !== -1) { 
+		if (this._keys.indexOf(identifier) !== -1) {
 			return identifier
 		}
 		if (identifier instanceof Uint8Array && identifier.length == 32 || identifier instanceof AccountId) {
@@ -64,7 +64,7 @@ class SecretStore extends Bond {
 	sign (from, data) {
 		let item = this.find(from)
 		if (item) {
-			console.info(`Signing data from ${item.name}`, bytesToHex(data))
+      console.info(`Signing data from ${item.name}`, bytesToHex(data))
 			let sig = nacl.sign.detached(data, item.key.secretKey)
 			console.info(`Signature is ${bytesToHex(sig)}`)
 			if (!nacl.sign.detached.verify(data, sig, item.key.publicKey)) {
@@ -74,7 +74,19 @@ class SecretStore extends Bond {
 			return sig
 		}
 		return null
-	}
+  }
+
+  signWithSecret (secretKey, data) {
+		let item = nacl.sign.keyPair.fromSecretKey(secretKey)
+		if (item) {
+			let sig = nacl.sign.detached(data, item.secretKey)
+			if (!nacl.sign.detached.verify(data, sig, item.publicKey)) {
+				return null
+			}
+			return sig
+		}
+		return null
+  }
 
 	forget (identifier) {
 		let item = this.find(identifier)
