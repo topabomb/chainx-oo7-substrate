@@ -1,10 +1,13 @@
 var substrate = require('oo7-substrate');
 const {
     bytesToHex,
-    toLE
+    toLE,
+    stringToBytes
 } = require('./src/utils')
 const {
-    AccountId
+    AccountId,
+    Balance,
+    VecU8
 } = require('./src/types')
 global.localStorage = {};
 
@@ -17,11 +20,13 @@ const {
     StorageBond
 } = require('./src/storageBond')
 
+const{ BigNumber} = require('bignumber.js');
 
 window = global;
 
 //设置节点
-substrate.setNodeUri(['ws://127.0.0.1:8082']);
+//substrate.setNodeUri(['ws://127.0.0.1:8082']);
+substrate.setNodeUri(['ws://192.168.1.237:8082']);
 
 var alice_seed = 'Alice';
 var alice_account_58 = '5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ';
@@ -94,6 +99,17 @@ substrate.runtimeUp.then(() => {
 
     //构造交易参数
     substrate.calls.balances.transfer(alan.account, 1000).tie((transfer_to_alan) => {
+        
+            substrate.calls.staking.stake(stringToBytes('name'),stringToBytes('url')).tie( data=>{
+                console.log('stake='+data.toString());
+            })
+            substrate.runtime.staking.nameOfIntention('5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ').tie(data => {
+                console.log('data='+data)
+            })
+
+            substrate.runtime.balances.totalBalance(alice_account_public).then((alice)=>{
+                console.log('totalBalance='+alice)
+            })
         //发送交易
         substrate.post({
             sender: alice.account,
