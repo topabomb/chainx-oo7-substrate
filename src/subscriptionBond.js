@@ -24,7 +24,7 @@ class SubscriptionBond extends Bond {
 		// promise instead of id because if a dependency triggers finalise() before id's promise is resolved the unsubscribing would call with undefined
 		this.subscription = nodeService().subscribe(this._name, this._params, callback, error => {
 			that.trigger({failed: error})
-			console.warn('Failed subscription:', error)
+			console.warn('Failed subscription:', error,this._name, this._params)
 			delete that.subscription
 		})
 	}

@@ -60,6 +60,7 @@ console.log('match jack#' + jack.account.toHex());
 
 
 substrate.runtimeUp.then(() => {
+    console.log(substrate.runtime);
 
     substrate.runtime.staking.currentEra.tie((data)=>{
         console.log('CurrentEra='+data);

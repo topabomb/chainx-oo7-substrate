@@ -25,7 +25,22 @@ let system = (() => {
 	return { name, version, chain }
 })()
 
-let runtime = { core: (() => {
+let version = (new SubscriptionBond('chain_runtimeVersion', [], r => {
+	let apis = {}
+	r.apis.forEach(([id, version]) => apis[String.fromCharCode.apply(null, id)] = version)
+	return {
+		authoringVersion: r.authoring_version,
+		implName: r.impl_name,
+		implVersion: r.impl_version,
+		specName: r.spec_name,
+		specVersion: r.spec_version,
+		apis
+	}
+})).subscriptable()
+
+version.tie(() => initRuntime(null, true))
+
+let runtime = { version, core: (() => {
 	let authorityCount = new SubscriptionBond('state_storage', [['0x' + bytesToHex(stringToBytes(':auth:len'))]], r => decode(hexToBytes(r.changes[0][1]), 'u32'))
 	let authorities = authorityCount.map(
 		n => [...Array(n)].map((_, i) =>
@@ -42,11 +57,13 @@ let runtime = { core: (() => {
 	let storage=storageBond=>new TransformBond((datakey)=> nodeService().request('state_getStorage', [datakey]).then(hexToBytes),[storageBond],[])
 	let sub_storage=(datakey)=>new SubscriptionBond('state_storage', [[datakey]], r => hexToBytes(r.changes[0][1])).subscriptable()
 	let code = new SubscriptionBond('state_storage', [['0x' + bytesToHex(stringToBytes(':code'))]], r => hexToBytes(r.changes[0][1]))
-	let codeHash = new TransformBond(() => nodeService().request('state_getStorageHash', ['0x' + bytesToHex(stringToBytes(":code"))]).then(hexToBytes), [], [chain.head])
-	let codeSize = new TransformBond(() => nodeService().request('state_getStorageSize', ['0x' + bytesToHex(stringToBytes(":code"))]), [], [chain.head])
+	
+	let codeHash = new TransformBond(() => nodeService().request('state_getStorageHash', ['0x' + bytesToHex(stringToBytes(":code"))]).then(hexToBytes), [], [version])
+	let codeSize = new TransformBond(() => nodeService().request('state_getStorageSize', ['0x' + bytesToHex(stringToBytes(":code"))]), [], [version])
+
 	let metaData = new TransformBond(() => nodeService().request('state_getMetadata', []).then(hexToBytes), [], [chain.head])
 
-	return { authorityCount, authorities, code, codeHash, codeSize,heappages ,storage,sub_storage,metaData}
+	return { authorityCount, authorities, code, codeHash, codeSize,heappages ,storage,sub_storage,metaData,version}
 	
 })() }
 
@@ -66,6 +83,8 @@ function initialiseFromMetadata (m) {
 	if (metadata.set) {
 		metadata.set(m)
 	}
+	console.log(m.modules);
+
 	m.modules.forEach((m, module_index) => {
 		let o = {}
 		let c = {}
@@ -125,7 +144,7 @@ function initialiseFromMetadata (m) {
 	onRuntimeInit = null
 }
 
-function initRuntime (callback = null) {
+function initRuntime (callback = null, force = false) {
 	
 	if (onRuntimeInit instanceof Array) {
 		onRuntimeInit.push(callback)
@@ -133,6 +152,7 @@ function initRuntime (callback = null) {
 		if (onRuntimeInit.length === 1) {
 			nodeService().request('state_getMetadata',[])
 				.then(blob => {
+					
 					return decode(hexToBytes(blob), 'RuntimeMetadata');
 				})
 				.then(initialiseFromMetadata).catch(function(e){
@@ -140,6 +160,14 @@ function initRuntime (callback = null) {
 				})
 		}
 	} else {
+		if (force) {
+			// reinitialise runtime
+			console.info("Reinitialising runtime")
+			onRuntimeInit = [callback]
+			nodeService().request('state_getMetadata')
+				.then(blob => decode(hexToBytes(blob), 'RuntimeMetadata'))
+				.then(initialiseFromMetadata)
+		}
 		// already inited runtime
 		if (callback) {
 			callback()

@@ -8,7 +8,7 @@ const TextDecoder= process.browser ? window.TextDecoder : require('util').TextDe
 const transforms = {
 	RuntimeMetadata: { outerEvent: 'OuterEventMetadata', modules: 'Vec<RuntimeModuleMetadata>' },
 	RuntimeModuleMetadata: { prefix: 'String', module: 'ModuleMetadata', storage: 'Option<StorageMetadata>' },
-	StorageFunctionModifier: { _enum: [ 'None', 'Default', 'Required' ] },
+	StorageFunctionModifier: { _enum: [ 'Optional', 'Default' ] },
 	StorageFunctionTypeMap: { key: 'Type', value: 'Type' },
 	StorageFunctionType: { _enum: { Plain: 'Type', Map: 'StorageFunctionTypeMap' } },
 	StorageFunctionMetadata: { name: 'String', modifier: 'StorageFunctionModifier', type: 'StorageFunctionType', documentation: 'Vec<String>' },
@@ -28,7 +28,7 @@ const transforms = {
 	EventRecord: { phase: 'Phase', event: 'Event' }
 };
 
-var decodePrefix = 0;
+var decodePrefix = '';
 
 function decode(input, type) {
 	if (typeof input.data === 'undefined') {
@@ -42,6 +42,9 @@ function decode(input, type) {
 	}
 	if (type == 'EventRecord<Event>') {
 		type = 'EventRecord'
+	}
+	if (type.match(/^<[A-Z][A-Za-z0-9]* as HasCompact>::Type$/) || type.match(/^Compact<[A-Za-z][A-Za-z0-9]*>$/)) {
+		type = 'Compact'
 	}
 
 	let dataHex = bytesToHex(input.data.slice(0, 50));
@@ -146,11 +149,7 @@ function decode(input, type) {
 				res = new SlashPreference(decode(input, 'u32'));
 				break;
 			}
-			case 'Compact<u128>':
-			case 'Compact<u64>':
-			case 'Compact<u32>':
-			case 'Compact<u16>':
-			case 'Compact<u8>': {
+			case 'Compact': {
 				let len;
 				if (input.data[0] % 4 == 0) {
 					// one byte
@@ -160,7 +159,7 @@ function decode(input, type) {
 					res = leToNumber(input.data.slice(0, 2)) >> 2;
 					len = 2;
 				} else if (input.data[0] % 4 == 2) {
-					res = leToNumber(inpuzt.data.slice(0, 4)) >> 2;
+					res = leToNumber(input.data.slice(0, 4)) >> 2;
 					len = 4;
 				} else {
 					let n = (input.data[0] >> 2) + 4;
@@ -387,7 +386,7 @@ function encode(value, type = null) {
 		console.error("TxEra::encode bad", type, value)
 	}
 
-	if (type.match(/^Compact<u[0-9]*>$/)) {
+	if (type.match(/^<[A-Z][A-Za-z0-9]* as HasCompact>::Type$/) || type.match(/^Compact<[A-Za-z][A-Za-z0-9]*>$/) || type === 'Compact') {
 		if (value < 1 << 6) {
 			return new Uint8Array([value << 2])
 		} else if (value < 1 << 14) {
