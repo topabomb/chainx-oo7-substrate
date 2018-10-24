@@ -52,7 +52,7 @@ function augment (runtime, chain) {
 			nominators: staking.currentNominatorsFor(who)
 		})), 2)
 		.map(v => v
-			.map(i => Object.assign({balance: i.ownBalance.add(i.otherBalance)}, i))
+			.map(i => Object.assign({balance: i.ownBalance.plus(i.otherBalance)}, i))
 			.sort((a, b) => b.balance - a.balance)
 		)
 
@@ -61,7 +61,7 @@ function augment (runtime, chain) {
 				who, ownBalance: balances.totalBalance(who), otherBalance: staking.nominatedBalance(who)
 			}) ) ]), 3
 		).map(([c, l]) => l
-			.map(i => Object.assign({balance: i.ownBalance.add(i.otherBalance)}, i))
+			.map(i => Object.assign({balance: i.ownBalance.plus(i.otherBalance)}, i))
 			.sort((a, b) => b.balance - a.balance)
 			.filter(i => !c.some(x => x+'' == i.who+''))
 			.slice(0, 3)
@@ -77,7 +77,7 @@ function augment (runtime, chain) {
 			})), 2),
 			staking.validatorCount
 		]).map(([as, vc]) => as
-			.map(i => Object.assign({balance: i.ownBalance.add(i.otherBalance)}, i))
+			.map(i => Object.assign({balance: i.ownBalance.plus(i.otherBalance)}, i))
 			.sort((a, b) => b.balance - a.balance)
 			.slice(0, vc)
 		)

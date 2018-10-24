@@ -18,7 +18,7 @@ function augment(runtime, chain) {
 
 	balances.balance = who => Bond
 		.all([balances.freeBalance(who), balances.reservedBalance(who)])
-		.map(([f, r]) => new Balance(f + r));
+		.map(([f, r]) => (new Balance(f)).plus(new Balance(r)));
 	balances.totalBalance = balances.balance;
 
 	balances.lookupIndex = indexBond => new TransformBond(index =>
