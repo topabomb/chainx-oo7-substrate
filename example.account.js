@@ -100,16 +100,22 @@ substrate.runtimeUp.then(() => {
     //构造交易参数
     substrate.calls.balances.transfer(alan.account, 1000).tie((transfer_to_alan) => {
         
-            substrate.calls.staking.stake(stringToBytes('name'),stringToBytes('url')).tie( data=>{
-                console.log('stake='+data.toString());
-            })
-            substrate.runtime.staking.nameOfIntention('5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ').tie(data => {
-                console.log('data='+data)
-            })
+        substrate.calls.staking.stake(stringToBytes('name'),stringToBytes('url')).tie( data=>{
+            console.log('stake='+data.toString());
+        })
+        substrate.runtime.staking.nameOfIntention('5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ').tie(data => {
+            console.log('data='+data)
+        })
+        
+        console.log(substrate.runtime.staking.nominationTo)
+        var nomination_to_account=new AccountId(stringToBytes('5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ'))
+        substrate.runtime.staking.nominationTo([nomination_to_account,nomination_to_account]).tie(data => {
+            console.log('nominationTo='+data)
+        })
 
-            substrate.runtime.balances.totalBalance(alice_account_public).then((alice)=>{
-                console.log('totalBalance='+alice)
-            })
+        substrate.runtime.balances.totalBalance(alice_account_public).then((alice)=>{
+            console.log('totalBalance='+alice)
+        })
         //发送交易
         substrate.post({
             sender: alice.account,
