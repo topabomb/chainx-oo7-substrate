@@ -28,10 +28,10 @@ class SubscriptionBond extends Bond {
 			delete that.subscription
 		})
 	}
-	
+
 	finalise () {
 		let that = this
-		this.subscription.then(id => {
+		this.subscription && this.subscription.then(id => {
 			nodeService().unsubscribe(id)
 			delete that.subscription
 		});
