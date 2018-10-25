@@ -108,8 +108,8 @@ substrate.runtimeUp.then(() => {
         })
         
         console.log(substrate.runtime.staking.nominationTo)
-        var nomination_to_account=new AccountId(stringToBytes('5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ'))
-        substrate.runtime.staking.nominationTo([nomination_to_account,nomination_to_account]).tie(data => {
+        
+        substrate.runtime.staking.nominationTo(['5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ','5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ']).tie(data => {
             console.log('nominationTo='+data)
         })
 

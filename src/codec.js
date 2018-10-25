@@ -339,7 +339,9 @@ function encode(value, type = null) {
 		}
 	}
 
-	if (type == 'AccountId') {
+	
+	if ((type == 'AccountId')||(type.toString().trim() == 'AccountId') ) {
+		
 		if (typeof value == 'string') {
 			return ss58Decode(value);
 		}
