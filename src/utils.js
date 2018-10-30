@@ -50,6 +50,16 @@ function toLEHex(val, bytes) {
 	}
 	return le;
 }
+
+function toRIHex(val, bytes) {
+	let be = ('00'.repeat(bytes) + val.toString(16)).slice(-bytes * 2);
+	var le = '';
+	for (var i = 0; i < be.length; i += 2) {
+		le = le + be.substr(i, 2) ;
+	}
+	return le;
+}
+
 function leHexToNumber(le) {
 	var be = '';
 	for (var i = le.startsWith('0x') ? 2 : 0; i < le.length; i += 2) {
@@ -134,4 +144,4 @@ function siPrefix(pot) {
 	}
 }
 
-module.exports = { stringToSeed, stringToBytes, hexToBytes, bytesToHex, toLEHex, leHexToNumber, toLE, leToNumber, injectChunkUtils, siPrefix }
+module.exports = { stringToSeed, stringToBytes, hexToBytes, bytesToHex, toLEHex, leHexToNumber, toLE, leToNumber, injectChunkUtils, siPrefix,toRIHex }

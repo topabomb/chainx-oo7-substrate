@@ -100,7 +100,7 @@ class NodeService {
 		this.subscriptions = {}
 		let ids = this.ids
 		this.ids = {}
-		console.log('Resubscribing', ids, subs)
+		//console.log('Resubscribing', ids, subs)
 		Object.keys(ids).forEach(id => {
 			let sub = subs[ids[id]]
 			that.subscribe(sub.what, sub.params, sub.callback, console.warn, id)

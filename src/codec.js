@@ -1,6 +1,6 @@
 const { ss58Decode } = require('./ss58')
 const { VecU8, AccountId, Hash, VoteThreshold, SlashPreference, Moment, Balance,
-	BlockNumber, AccountIndex, Tuple, TransactionEra } = require('./types')
+	BlockNumber, AccountIndex, Tuple, TransactionEra,BtcBestHeader,BtcBlockHeader } = require('./types')
 const { toLE, leToNumber,hexToBytes, bytesToHex } = require('./utils')
 const metadata = require('./metadata')
 const TextDecoder= process.browser ? window.TextDecoder : require('util').TextDecoder;
@@ -31,6 +31,8 @@ const transforms = {
 var decodePrefix = 0;
 
 function decode(input, type) {
+	//console.log('decode='+type+' '+typeof type)
+
 	if (typeof input.data === 'undefined') {
 		input = { data: input };
 	}
@@ -107,6 +109,7 @@ function decode(input, type) {
 				input.data = input.data.slice(32);
 				break;
 			}
+			case 'H256':
 			case 'Hash': {
 				res = new Hash(input.data.slice(0, 32));
 				input.data = input.data.slice(32);
@@ -226,6 +229,43 @@ function decode(input, type) {
 					res = res.replace('T::', '');
 				}
 				res = res.match(/^Box<.*>$/) ? res.slice(4, -1) : res;
+				break;
+			}
+			case 'BestHeader':{
+				let n = leToNumber(input.data.slice(0, 4));
+				n = new BlockNumber(n);
+				input.data = input.data.slice(4);
+				let h=new Hash(input.data.slice(0, 32));
+				input.data = input.data.slice(32);
+				res = new BtcBestHeader(n,h);
+				break;
+			}
+			case 'BlockHeader':{
+				//console.log(input.data)
+
+				input.data = input.data.slice(2);
+
+				let version=leToNumber(input.data.slice(0, 4));
+				version=new BlockNumber(version);
+				input.data = input.data.slice(4);
+
+				let parent=new Hash(input.data.slice(0, 32));
+				input.data = input.data.slice(32);
+
+				let merkle=new Hash(input.data.slice(0, 32));
+				input.data = input.data.slice(32);
+
+				let time=leToNumber(input.data.slice(0, 4));
+				input.data = input.data.slice(4);
+
+				let bits=leToNumber(input.data.slice(0, 4));
+				input.data = input.data.slice(4);
+
+				let nonce=leToNumber(input.data.slice(0, 4));
+				input.data = input.data.slice(4);
+
+				res= new BtcBlockHeader(version,parent,merkle,time,bits,nonce);
+
 				break;
 			}
 			default: {
@@ -379,6 +419,9 @@ function encode(value, type = null) {
 			return value
 		}
 		if (type == 'Hash' && value.length == 32) {
+			return value
+		}
+		if (type == 'H256' && value.length == 32) {
 			return value
 		}
 	}
