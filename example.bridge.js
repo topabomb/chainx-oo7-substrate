@@ -4,7 +4,8 @@ const {
     toLE,
     stringToBytes,
     toLEHex,
-    toRIHex
+    toRIHex,
+    toBtcAddress
 } = require('./src/utils')
 const {
     AccountId,
@@ -22,7 +23,9 @@ const {
     StorageBond
 } = require('./src/storageBond')
 
-const{ BigNumber} = require('bignumber.js');
+const {
+    BigNumber
+} = require('bignumber.js');
 
 window = global;
 
@@ -44,57 +47,71 @@ console.log('address#' + alice_account_address);
 
 
 substrate.runtimeUp.then(() => {
-  
-    function getTxByNum(number){
-        bridgeofbtc.hashForNumber(number).tie(hash=>{
-            console.log('#num='+number+',hash='+hash.toRightHex())
-            bridgeofbtc.blockTxids(hash).tie(data=>{
-                console.log(data)
-                for( var i=0;i<data.length;i++){
-                    console.log('#blockTxids:['+i+'] '+data[i].toRightHex())
+
+    function getTxByNum(number) {
+        bridgeofbtc.hashForNumber(number).tie(hash => {
+            console.log('#num=' + number + ',hash=' + hash.toRightHex())
+            bridgeofbtc.blockTxids(hash).tie(data => {
+                //console.log(data)
+                for (var i = 0; i < data.length; i++) {
+                    console.log('#blockTxids:[' + i + '] ' + data[i].toRightHex())
+
+                    bridgeofbtc.txSet(data[i]).tie(tx => {
+                        console.log('AccountId#' + '=>' + bytesToHex(tx[0]))
+                        console.log('btcAddress#' + '=>' + toBtcAddress(tx[1].hash.toHex(), 'testnet')) 
+                        console.log('TxType#' + '=>' + (tx[2].toName()))
+                        console.log('value#' + '=>' + tx[3])
+                    })
+
                 }
             })
         })
     }
-    let bridgeofbtc=substrate.runtime.bridge_btc;
-   
-    bridgeofbtc.bestIndex.tie(data=>{
-        console.log('#block number:'+data.number);
-        console.log('#block hash:0x'+data.hash.toRightHex());
-       
-        let number=parseInt(data.number)
 
-        bridgeofbtc.hashForNumber(number).tie(hash=>{
-            console.log('#hashForNumber:'+number+'->0x'+hash.toRightHex())
+    let bridgeofbtc = substrate.runtime.bridge_btc;
 
-            bridgeofbtc.headerNumberFor(hash).tie(height=>{
-                console.log('#headerNumberFor:'+height)
+    bridgeofbtc.bestIndex.tie(data => {
+        console.log('#block number:' + data.number);
+        console.log('#block hash:0x' + data.hash.toRightHex());
+
+        let number = parseInt(data.number)
+
+        bridgeofbtc.hashForNumber(number).tie(hash => {
+            console.log('#hashForNumber:' + number + '->0x' + hash.toRightHex())
+
+            bridgeofbtc.headerNumberFor(hash).tie(height => {
+                console.log('#headerNumberFor:' + height)
             })
 
-            bridgeofbtc.blockHeaderFor(hash).then(data=>{
-                let header=data[0]
-                let account=data[1]
-                console.log('#BlockHeaderFor:AccountId->'+account.toHex())
-                console.log('#BlockHeaderFor:'+hash.toRightHex()+'->version:0x'+toRIHex(header.version,4))
-                console.log('#BlockHeaderFor:'+hash.toRightHex()+'->previous_header_hash:'+header.previous_header_hash.toRightHex())
-                console.log('#BlockHeaderFor:'+hash.toRightHex()+'->merkle_root_hash:'+header.merkle_root_hash.toRightHex())
-                console.log('#BlockHeaderFor:'+hash.toRightHex()+'->time:'+header.time)
-                console.log('#BlockHeaderFor:'+hash.toRightHex()+'->bits:'+header.bits)
-                console.log('#BlockHeaderFor:'+hash.toRightHex()+'->nonce:'+header.nonce)
+            bridgeofbtc.blockHeaderFor(hash).then(data => {
+                let header = data[0]
+                let account = data[1]
+                console.log('#BlockHeaderFor:AccountId->' + account.toHex())
+                console.log('#BlockHeaderFor:' + hash.toRightHex() + '->version:0x' + toRIHex(header.version, 4))
+                console.log('#BlockHeaderFor:' + hash.toRightHex() + '->previous_header_hash:' + header.previous_header_hash.toRightHex())
+                console.log('#BlockHeaderFor:' + hash.toRightHex() + '->merkle_root_hash:' + header.merkle_root_hash.toRightHex())
+                console.log('#BlockHeaderFor:' + hash.toRightHex() + '->time:' + header.time)
+                console.log('#BlockHeaderFor:' + hash.toRightHex() + '->bits:' + header.bits)
+                console.log('#BlockHeaderFor:' + hash.toRightHex() + '->nonce:' + header.nonce)
 
             })
 
-            bridgeofbtc.blockTxids(hash).tie(data=>{
-                console.log(data)
-                for( var i=0;i<data.length;i++){
-                    console.log('#blockTxids:['+i+'] '+data[i].toRightHex())
-                }
-            })
+
         })
     })
 
-    getTxByNum(722863)
-   
-    
+    getTxByNum(918004)
+
+
+    bridgeofbtc.utxoMaxIndex.tie(maxindex => {
+        console.log('UTXOMaxIndex#' + maxindex)
+        bridgeofbtc.utxoSet(maxindex - 1).tie(utxo => {
+            console.log('utxo txid#' + utxo.txid.toRightHex())
+            console.log('utxo index#' + utxo.index)
+            console.log('utxo balance#' + utxo.balance)
+            console.log('utxo is_spent#' + utxo.is_spent)
+        })
+    })
+
 
 });

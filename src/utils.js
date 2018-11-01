@@ -1,4 +1,8 @@
-const { VecU8 } = require('./types')
+const {
+	VecU8
+} = require('./types')
+const Address = require('btc-address')
+const binConv = require('binstring')
 
 function stringToSeed(s) {
 	if (s.match(/^0x[0-9a-fA-F]{64}$/)) {
@@ -6,18 +10,20 @@ function stringToSeed(s) {
 	}
 	var data = new VecU8(32);
 	data.fill(32);
-	for (var i = 0; i < s.length; i++){
+	for (var i = 0; i < s.length; i++) {
 		data[i] = s.charCodeAt(i);
 	}
 	return data;
 }
+
 function stringToBytes(s) {
 	var data = new VecU8(s.length);
-	for (var i = 0; i < s.length; i++){
+	for (var i = 0; i < s.length; i++) {
 		data[i] = s.charCodeAt(i);
 	}
 	return data;
 }
+
 function hexToBytes(str) {
 	if (!str) {
 		return new VecU8();
@@ -29,6 +35,7 @@ function hexToBytes(str) {
 
 	return new VecU8(a);
 }
+
 function bytesToHex(uint8arr) {
 	if (!uint8arr) {
 		return '';
@@ -42,6 +49,7 @@ function bytesToHex(uint8arr) {
 
 	return hexStr.toLowerCase();
 }
+
 function toLEHex(val, bytes) {
 	let be = ('00'.repeat(bytes) + val.toString(16)).slice(-bytes * 2);
 	var le = '';
@@ -55,7 +63,7 @@ function toRIHex(val, bytes) {
 	let be = ('00'.repeat(bytes) + val.toString(16)).slice(-bytes * 2);
 	var le = '';
 	for (var i = 0; i < be.length; i += 2) {
-		le = le + be.substr(i, 2) ;
+		le = le + be.substr(i, 2);
 	}
 	return le;
 }
@@ -80,12 +88,15 @@ function toLE(val, bytes) {
 function leToNumber(le) {
 	let r = 0;
 	let a = 1;
-	le.forEach(x => { r += x * a; a *= 256; });
+	le.forEach(x => {
+		r += x * a;
+		a *= 256;
+	});
 	return r;
 }
 
 function injectChunkUtils() {
-	String.prototype.chunks = function(size) {
+	String.prototype.chunks = function (size) {
 		var r = [];
 		var count = this.length / size;
 		for (var i = 0; i < count; ++i) {
@@ -94,7 +105,7 @@ function injectChunkUtils() {
 		return r;
 	}
 
-	String.prototype.mapChunks = function(sizes, f) {
+	String.prototype.mapChunks = function (sizes, f) {
 		var r = [];
 		var count = this.length / sizes.reduce((a, b) => a + b, 0);
 		var offset = 0;
@@ -108,7 +119,7 @@ function injectChunkUtils() {
 		return r;
 	}
 
-	Uint8Array.prototype.mapChunks = function(sizes, f) {
+	Uint8Array.prototype.mapChunks = function (sizes, f) {
 		var r = [];
 		var count = this.length / sizes.reduce((a, b) => a + b, 0);
 		var offset = 0;
@@ -124,24 +135,67 @@ function injectChunkUtils() {
 
 function siPrefix(pot) {
 	switch (pot) {
-		case -24: return 'y'
-		case -21: return 'z'
-		case -18: return 'a'
-		case -15: return 'f'
-		case -12: return 'p'
-		case -9: return 'n'
-		case -6: return 'µ'
-		case -3: return 'm'
-		case 0: return ''
-		case 3: return 'k'
-		case 6: return 'M'
-		case 9: return 'G'
-		case 12: return 'T'
-		case 15: return 'P'
-		case 18: return 'E'
-		case 21: return 'Z'
-		case 24: return 'Y'
+		case -24:
+			return 'y'
+		case -21:
+			return 'z'
+		case -18:
+			return 'a'
+		case -15:
+			return 'f'
+		case -12:
+			return 'p'
+		case -9:
+			return 'n'
+		case -6:
+			return 'µ'
+		case -3:
+			return 'm'
+		case 0:
+			return ''
+		case 3:
+			return 'k'
+		case 6:
+			return 'M'
+		case 9:
+			return 'G'
+		case 12:
+			return 'T'
+		case 15:
+			return 'P'
+		case 18:
+			return 'E'
+		case 21:
+			return 'Z'
+		case 24:
+			return 'Y'
 	}
 }
 
-module.exports = { stringToSeed, stringToBytes, hexToBytes, bytesToHex, toLEHex, leHexToNumber, toLE, leToNumber, injectChunkUtils, siPrefix,toRIHex }
+function toBtcAddress(hash160, network = null, addresstype = null) {
+	var n = network ? network : 'testnet'; //mainnet
+	var t = addresstype ? addresstype : 'pubkeyhash'; //scripthash	
+
+	var address = new Address(binConv(hash160, { in: 'hex',
+		out: 'bytes'
+	}), t, n);
+
+	return address.toString()
+}
+
+
+
+module.exports = {
+	stringToSeed,
+	stringToBytes,
+	hexToBytes,
+	bytesToHex,
+	toLEHex,
+	leHexToNumber,
+	toLE,
+	leToNumber,
+	injectChunkUtils,
+	siPrefix,
+	toRIHex,
+	toBtcAddress
+}

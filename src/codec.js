@@ -1,31 +1,120 @@
-const { ss58Decode } = require('./ss58')
-const { VecU8, AccountId, Hash, VoteThreshold, SlashPreference, Moment, Balance,
-	BlockNumber, AccountIndex, Tuple, TransactionEra,BtcBestHeader,BtcBlockHeader } = require('./types')
-const { toLE, leToNumber,hexToBytes, bytesToHex } = require('./utils')
+const {
+	ss58Decode
+} = require('./ss58')
+const {
+	VecU8,
+	AccountId,
+	Hash,
+	VoteThreshold,
+	SlashPreference,
+	Moment,
+	Balance,
+	BlockNumber,
+	AccountIndex,
+	Tuple,
+	TransactionEra,
+	BtcBestHeader,
+	BtcBlockHeader,
+	BtcAddress,
+	BtcTxType,
+	BtcTranscation,
+	BtcUTXO
+} = require('./types')
+const {
+	toLE,
+	leToNumber,
+	hexToBytes,
+	bytesToHex
+} = require('./utils')
 const metadata = require('./metadata')
-const TextDecoder= process.browser ? window.TextDecoder : require('util').TextDecoder;
+const TextDecoder = process.browser ? window.TextDecoder : require('util').TextDecoder;
 
 const transforms = {
-	RuntimeMetadata: { outerEvent: 'OuterEventMetadata', modules: 'Vec<RuntimeModuleMetadata>' },
-	RuntimeModuleMetadata: { prefix: 'String', module: 'ModuleMetadata', storage: 'Option<StorageMetadata>' },
-	StorageFunctionModifier: { _enum: [ 'None', 'Default', 'Required' ] },
-	StorageFunctionTypeMap: { key: 'Type', value: 'Type' },
-	StorageFunctionType: { _enum: { Plain: 'Type', Map: 'StorageFunctionTypeMap' } },
-	StorageFunctionMetadata: { name: 'String', modifier: 'StorageFunctionModifier', type: 'StorageFunctionType', documentation: 'Vec<String>' },
-	StorageMetadata: { prefix: 'String', items: 'Vec<StorageFunctionMetadata>' },
-	EventMetadata: { name: 'String', arguments: 'Vec<Type>', documentation: 'Vec<String>' },
-	OuterEventMetadata: { name: 'String', events: 'Vec<(String, Vec<EventMetadata>)>' },
-	ModuleMetadata: { name: 'String', call: 'CallMetadata' },
-	CallMetadata: { name: 'String', functions: 'Vec<FunctionMetadata>' },
-	FunctionMetadata: { id: 'u16', name: 'String', arguments: 'Vec<FunctionArgumentMetadata>', documentation: 'Vec<String>' },
-	FunctionArgumentMetadata: { name: 'String', type: 'Type' },
+	RuntimeMetadata: {
+		outerEvent: 'OuterEventMetadata',
+		modules: 'Vec<RuntimeModuleMetadata>'
+	},
+	RuntimeModuleMetadata: {
+		prefix: 'String',
+		module: 'ModuleMetadata',
+		storage: 'Option<StorageMetadata>'
+	},
+	StorageFunctionModifier: {
+		_enum: ['None', 'Default', 'Required']
+	},
+	StorageFunctionTypeMap: {
+		key: 'Type',
+		value: 'Type'
+	},
+	StorageFunctionType: {
+		_enum: {
+			Plain: 'Type',
+			Map: 'StorageFunctionTypeMap'
+		}
+	},
+	StorageFunctionMetadata: {
+		name: 'String',
+		modifier: 'StorageFunctionModifier',
+		type: 'StorageFunctionType',
+		documentation: 'Vec<String>'
+	},
+	StorageMetadata: {
+		prefix: 'String',
+		items: 'Vec<StorageFunctionMetadata>'
+	},
+	EventMetadata: {
+		name: 'String',
+		arguments: 'Vec<Type>',
+		documentation: 'Vec<String>'
+	},
+	OuterEventMetadata: {
+		name: 'String',
+		events: 'Vec<(String, Vec<EventMetadata>)>'
+	},
+	ModuleMetadata: {
+		name: 'String',
+		call: 'CallMetadata'
+	},
+	CallMetadata: {
+		name: 'String',
+		functions: 'Vec<FunctionMetadata>'
+	},
+	FunctionMetadata: {
+		id: 'u16',
+		name: 'String',
+		arguments: 'Vec<FunctionArgumentMetadata>',
+		documentation: 'Vec<String>'
+	},
+	FunctionArgumentMetadata: {
+		name: 'String',
+		type: 'Type'
+	},
 
-	NewAccountOutcome: { _enum: [ 'NoHint', 'GoodHint', 'BadHint' ] },
-	UpdateBalanceOutcome: { _enum: [ 'Updated', 'AccountKilled' ] },
+	NewAccountOutcome: {
+		_enum: ['NoHint', 'GoodHint', 'BadHint']
+	},
+	UpdateBalanceOutcome: {
+		_enum: ['Updated', 'AccountKilled']
+	},
 
-	Transaction: { version: 'u8', sender: 'Address', signature: 'Signature', index: 'Index', era: 'TransactionEra', call: 'Call' },
-	Phase: { _enum: { ApplyExtrinsic: 'u32', Finalization: undefined } },
-	EventRecord: { phase: 'Phase', event: 'Event' }
+	Transaction: {
+		version: 'u8',
+		sender: 'Address',
+		signature: 'Signature',
+		index: 'Index',
+		era: 'TransactionEra',
+		call: 'Call'
+	},
+	Phase: {
+		_enum: {
+			ApplyExtrinsic: 'u32',
+			Finalization: undefined
+		}
+	},
+	EventRecord: {
+		phase: 'Phase',
+		event: 'Event'
+	}
 };
 
 var decodePrefix = 0;
@@ -34,7 +123,9 @@ function decode(input, type) {
 	//console.log('decode='+type+' '+typeof type)
 
 	if (typeof input.data === 'undefined') {
-		input = { data: input };
+		input = {
+			data: input
+		};
 	}
 	if (typeof type === 'object') {
 		return type.map(t => decode(input, t));
@@ -47,8 +138,8 @@ function decode(input, type) {
 	}
 
 	let dataHex = bytesToHex(input.data.slice(0, 50));
-//	console.log(decodePrefix + 'des >>>', type, dataHex);
-//	decodePrefix +=  "   ";
+	//	console.log(decodePrefix + 'des >>>', type, dataHex);
+	//	decodePrefix +=  "   ";
 
 	let res;
 	let transform = transforms[type];
@@ -70,109 +161,129 @@ function decode(input, type) {
 				// simple enum
 				let n = input.data[0];
 				input.data = input.data.slice(1);
-				res = { option: transform._enum[n] };
+				res = {
+					option: transform._enum[n]
+				};
 			} else if (transform._enum) {
 				// enum
 				let n = input.data[0];
 				input.data = input.data.slice(1);
 				let option = Object.keys(transform._enum)[n];
-				res = { option, value: typeof transform._enum[option] === 'undefined' ? undefined : decode(input, transform._enum[option]) };
+				res = {
+					option,
+					value: typeof transform._enum[option] === 'undefined' ? undefined : decode(input, transform._enum[option])
+				};
 			}
 		}
 		res._type = type;
 	} else {
 
 		switch (type) {
-/*			case 'Call':
-			case 'Proposal': {
-				let c = Calls[input.data[0]];
-				res = type === 'Call' ? new Call : new Proposal;
-				res.module = c.name;
-				c = c[type == 'Call' ? 'calls' : 'priv_calls'][input.data[1]];
-				input.data = input.data.slice(2);
-				res.name = c.name;
-				res.params = c.params.map(p => ({ name: p.name, type: p.type, value: decode(input, p.type) }));
-				break;
-			}*/
-			case 'Event': {
-				let events = metadata.outerEvent.events
-				let moduleIndex = decode(input, 'u8')
-				let module = events[moduleIndex][0]
-				let eventIndex = decode(input, 'u8')
-				let name = events[moduleIndex][1][eventIndex].name
-				let args = decode(input, events[moduleIndex][1][eventIndex].arguments)
-				res = { _type: 'Event', module, name, args }
-				break
-			}
-			case 'AccountId': {
-				res = new AccountId(input.data.slice(0, 32));
-				input.data = input.data.slice(32);
-				break;
-			}
+			/*			case 'Call':
+						case 'Proposal': {
+							let c = Calls[input.data[0]];
+							res = type === 'Call' ? new Call : new Proposal;
+							res.module = c.name;
+							c = c[type == 'Call' ? 'calls' : 'priv_calls'][input.data[1]];
+							input.data = input.data.slice(2);
+							res.name = c.name;
+							res.params = c.params.map(p => ({ name: p.name, type: p.type, value: decode(input, p.type) }));
+							break;
+						}*/
+			case 'Event':
+				{
+					let events = metadata.outerEvent.events
+					let moduleIndex = decode(input, 'u8')
+					let module = events[moduleIndex][0]
+					let eventIndex = decode(input, 'u8')
+					let name = events[moduleIndex][1][eventIndex].name
+					let args = decode(input, events[moduleIndex][1][eventIndex].arguments)
+					res = {
+						_type: 'Event',
+						module,
+						name,
+						args
+					}
+					break
+				}
+			case 'AccountId':
+				{
+					res = new AccountId(input.data.slice(0, 32));
+					input.data = input.data.slice(32);
+					break;
+				}
 			case 'H256':
-			case 'Hash': {
-				res = new Hash(input.data.slice(0, 32));
-				input.data = input.data.slice(32);
-				break;
-			}
-			case 'Balance': {
-				res = leToNumber(input.data.slice(0, 16));
-				input.data = input.data.slice(16);
-				res = new Balance(res);
-				break;
-			}
-			case 'BlockNumber': {
-				res = leToNumber(input.data.slice(0, 8));
-				input.data = input.data.slice(8);
-				res = new BlockNumber(res);
-				break;
-			}
-			case 'AccountIndex': {
-				res = leToNumber(input.data.slice(0, 4));
-				input.data = input.data.slice(4);
-				res = new AccountIndex(res);
-				break;
-			}
-			case 'Moment': {
-				let n = leToNumber(input.data.slice(0, 8));
-				input.data = input.data.slice(8);
-				res = new Moment(n);
-				break;
-			}
-			case 'VoteThreshold': {
-				const VOTE_THRESHOLD = ['SuperMajorityApprove', 'NotSuperMajorityAgainst', 'SimpleMajority'];
-				res = new VoteThreshold(VOTE_THRESHOLD[input.data[0]]);
-				input.data = input.data.slice(1);
-				break;
-			}
-			case 'SlashPreference': {
-				res = new SlashPreference(decode(input, 'u32'));
-				break;
-			}
+			case 'Hash':
+				{
+					res = new Hash(input.data.slice(0, 32));
+					input.data = input.data.slice(32);
+					break;
+				}
+			case 'Balance':
+				{
+					res = leToNumber(input.data.slice(0, 16));
+					input.data = input.data.slice(16);
+					res = new Balance(res);
+					break;
+				}
+			case 'BlockNumber':
+				{
+					res = leToNumber(input.data.slice(0, 8));
+					input.data = input.data.slice(8);
+					res = new BlockNumber(res);
+					break;
+				}
+			case 'AccountIndex':
+				{
+					res = leToNumber(input.data.slice(0, 4));
+					input.data = input.data.slice(4);
+					res = new AccountIndex(res);
+					break;
+				}
+			case 'Moment':
+				{
+					let n = leToNumber(input.data.slice(0, 8));
+					input.data = input.data.slice(8);
+					res = new Moment(n);
+					break;
+				}
+			case 'VoteThreshold':
+				{
+					const VOTE_THRESHOLD = ['SuperMajorityApprove', 'NotSuperMajorityAgainst', 'SimpleMajority'];
+					res = new VoteThreshold(VOTE_THRESHOLD[input.data[0]]);
+					input.data = input.data.slice(1);
+					break;
+				}
+			case 'SlashPreference':
+				{
+					res = new SlashPreference(decode(input, 'u32'));
+					break;
+				}
 			case 'Compact<u128>':
 			case 'Compact<u64>':
 			case 'Compact<u32>':
 			case 'Compact<u16>':
-			case 'Compact<u8>': {
-				let len;
-				if (input.data[0] % 4 == 0) {
-					// one byte
-					res = input.data[0] >> 2;
-					len = 1;
-				} else if (input.data[0] % 4 == 1) {
-					res = leToNumber(input.data.slice(0, 2)) >> 2;
-					len = 2;
-				} else if (input.data[0] % 4 == 2) {
-					res = leToNumber(inpuzt.data.slice(0, 4)) >> 2;
-					len = 4;
-				} else {
-					let n = (input.data[0] >> 2) + 4;
-					res = leToNumber(input.data.slice(1, n + 1));
-					len = 5 + n;
+			case 'Compact<u8>':
+				{
+					let len;
+					if (input.data[0] % 4 == 0) {
+						// one byte
+						res = input.data[0] >> 2;
+						len = 1;
+					} else if (input.data[0] % 4 == 1) {
+						res = leToNumber(input.data.slice(0, 2)) >> 2;
+						len = 2;
+					} else if (input.data[0] % 4 == 2) {
+						res = leToNumber(inpuzt.data.slice(0, 4)) >> 2;
+						len = 4;
+					} else {
+						let n = (input.data[0] >> 2) + 4;
+						res = leToNumber(input.data.slice(1, n + 1));
+						len = 5 + n;
+					}
+					input.data = input.data.slice(len);
+					break;
 				}
-				input.data = input.data.slice(len);
-				break;
-			}
 			case 'u8':
 				res = leToNumber(input.data.slice(0, 1));
 				input.data = input.data.slice(1);
@@ -184,118 +295,169 @@ function decode(input, type) {
 			case 'u32':
 			case 'VoteIndex':
 			case 'PropIndex':
-			case 'ReferendumIndex': {
-				res = leToNumber(input.data.slice(0, 4));
-				input.data = input.data.slice(4);
-				break;
-			}
+			case 'ReferendumIndex':
+				{
+					res = leToNumber(input.data.slice(0, 4));
+					input.data = input.data.slice(4);
+					break;
+				}
 			case 'u64':
-			case 'Index': {
-				res = leToNumber(input.data.slice(0, 8));
-				input.data = input.data.slice(8);
-				break;
-			}
-			case 'bool': {
-				res = !!input.data[0];
-				input.data = input.data.slice(1);
-				break;
-			}
-			case 'KeyValue': {
-				res = decode(input, '(Vec<u8>, Vec<u8>)');
-				break;
-			}
-			case 'Vec<bool>': {
-				let size = decode(input, 'Compact<u32>');
-				res = [...input.data.slice(0, size)].map(a => !!a);
-				input.data = input.data.slice(size);
-				break;
-			}
-			case 'Vec<u8>': {
-				let size = decode(input, 'Compact<u32>');
-				res = input.data.slice(0, size);
-				input.data = input.data.slice(size);
-				break;
-			}
-			case 'String': {
-				let size = decode(input, 'Compact<u32>');
-				res = input.data.slice(0, size);
-				input.data = input.data.slice(size);
-				res = new TextDecoder("utf-8").decode(res);
-				break;
-			}
-			case 'Type': {
-				res = decode(input, 'String');
-				while (res.indexOf('T::') != -1) {
-					res = res.replace('T::', '');
+			case 'Index':
+				{
+					res = leToNumber(input.data.slice(0, 8));
+					input.data = input.data.slice(8);
+					break;
 				}
-				res = res.match(/^Box<.*>$/) ? res.slice(4, -1) : res;
-				break;
-			}
-			case 'BestHeader':{
-				let n = leToNumber(input.data.slice(0, 4));
-				n = new BlockNumber(n);
-				input.data = input.data.slice(4);
-				let h=new Hash(input.data.slice(0, 32));
-				input.data = input.data.slice(32);
-				res = new BtcBestHeader(n,h);
-				break;
-			}
-			case 'BlockHeader':{
-				//console.log(input.data)
-
-				input.data = input.data.slice(2);
-
-				let version=leToNumber(input.data.slice(0, 4));
-				version=new BlockNumber(version);
-				input.data = input.data.slice(4);
-
-				let parent=new Hash(input.data.slice(0, 32));
-				input.data = input.data.slice(32);
-
-				let merkle=new Hash(input.data.slice(0, 32));
-				input.data = input.data.slice(32);
-
-				let time=leToNumber(input.data.slice(0, 4));
-				input.data = input.data.slice(4);
-
-				let bits=leToNumber(input.data.slice(0, 4));
-				input.data = input.data.slice(4);
-
-				let nonce=leToNumber(input.data.slice(0, 4));
-				input.data = input.data.slice(4);
-
-				res= new BtcBlockHeader(version,parent,merkle,time,bits,nonce);
-
-				break;
-			}
-			default: {
-				let v = type.match(/^Vec<(.*)>$/);
-				if (v) {
+			case 'bool':
+				{
+					res = !!input.data[0];
+					input.data = input.data.slice(1);
+					break;
+				}
+			case 'KeyValue':
+				{
+					res = decode(input, '(Vec<u8>, Vec<u8>)');
+					break;
+				}
+			case 'Vec<bool>':
+				{
 					let size = decode(input, 'Compact<u32>');
-					res = [...new Array(size)].map(() => decode(input, v[1]));
+					res = [...input.data.slice(0, size)].map(a => !!a);
+					input.data = input.data.slice(size);
 					break;
 				}
-				let o = type.match(/^Option<(.*)>$/);
-				if (o) {
-					let some = decode(input, 'bool');
-					if (some) {
-						res = decode(input, o[1]);
-					} else {
-						res = null;
+			case 'Vec<u8>':
+				{
+					let size = decode(input, 'Compact<u32>');
+					res = input.data.slice(0, size);
+					input.data = input.data.slice(size);
+					break;
+				}
+			case 'String':
+				{
+					let size = decode(input, 'Compact<u32>');
+					res = input.data.slice(0, size);
+					input.data = input.data.slice(size);
+					res = new TextDecoder("utf-8").decode(res);
+					break;
+				}
+			case 'Type':
+				{
+					res = decode(input, 'String');
+					while (res.indexOf('T::') != -1) {
+						res = res.replace('T::', '');
 					}
+					res = res.match(/^Box<.*>$/) ? res.slice(4, -1) : res;
 					break;
 				}
-				let t = type.match(/^\((.*)\)$/);
-				if (t) {
-					res = new Tuple(...decode(input, t[1].split(', ')));
+			case 'BestHeader':
+				{
+					let n = leToNumber(input.data.slice(0, 4));
+					n = new BlockNumber(n);
+					input.data = input.data.slice(4);
+					let h = new Hash(input.data.slice(0, 32));
+					input.data = input.data.slice(32);
+					res = new BtcBestHeader(n, h);
 					break;
 				}
-				throw 'Unknown type to decode: ' + type;
-			}
+			case 'BlockHeader':
+				{
+					//console.log(input.data)
+					//input.data = input.data.slice(2);
+					decode(input, 'Compact<u32>');
+
+
+					let version = leToNumber(input.data.slice(0, 4));
+					version = new BlockNumber(version);
+					input.data = input.data.slice(4);
+
+					let parent = new Hash(input.data.slice(0, 32));
+					input.data = input.data.slice(32);
+
+					let merkle = new Hash(input.data.slice(0, 32));
+					input.data = input.data.slice(32);
+
+					let time = leToNumber(input.data.slice(0, 4));
+					input.data = input.data.slice(4);
+
+					let bits = leToNumber(input.data.slice(0, 4));
+					input.data = input.data.slice(4);
+
+					let nonce = leToNumber(input.data.slice(0, 4));
+					input.data = input.data.slice(4);
+
+					res = new BtcBlockHeader(version, parent, merkle, time, bits, nonce);
+
+					break;
+				}
+			case 'keys::Address':
+				{
+					let kind = leToNumber(input.data.slice(0, 1));
+					kind = new BlockNumber(kind);
+					input.data = input.data.slice(1);
+
+					let network = leToNumber(input.data.slice(0, 1));
+					network = new BlockNumber(kind);
+					input.data = input.data.slice(1);
+
+					let hash = new Hash(input.data.slice(0, 20));
+					input.data = input.data.slice(20);
+
+					res = new BtcAddress(kind, network, hash);
+					break;
+				}
+			case 'TxType':
+				{
+					let txtype = leToNumber(input.data.slice(0, 1));
+					res = new BtcTxType(txtype);
+					input.data = input.data.slice(1);
+
+					break;
+				}
+			case 'BTCTransaction':
+				{
+					res = new BtcTranscation();
+					break;
+				}
+			case 'UTXO':
+				{
+					let txid = decode(input, 'H256');
+					let index = decode(input, 'u32');
+					let balance = decode(input, 'u64');
+					let is_spent = decode(input, 'bool');
+
+					res = new BtcUTXO(txid, index, balance, is_spent);
+					break;
+				}
+			default:
+				{
+					let v = type.match(/^Vec<(.*)>$/);
+					if (v) {
+						let size = decode(input, 'Compact<u32>');
+						res = [...new Array(size)].map(() => decode(input, v[1]));
+						break;
+					}
+					let o = type.match(/^Option<(.*)>$/);
+					if (o) {
+						let some = decode(input, 'bool');
+						if (some) {
+							res = decode(input, o[1]);
+						} else {
+							res = null;
+						}
+						break;
+					}
+					let t = type.match(/^\((.*)\)$/);
+					if (t) {
+						res = new Tuple(...decode(input, t[1].split(', ')));
+						break;
+					}
+					throw 'Unknown type to decode: ' + type;
+				}
 		}
 	}
-//	decodePrefix = decodePrefix.substr(3);
-//	console.log(decodePrefix + 'des <<<', type, res);
+	//	decodePrefix = decodePrefix.substr(3);
+	//	console.log(decodePrefix + 'des <<<', type, res);
 	return res;
 }
 
@@ -379,9 +541,9 @@ function encode(value, type = null) {
 		}
 	}
 
-	
-	if ((type == 'AccountId')||(type.toString().trim() == 'AccountId') ) {
-		
+
+	if ((type == 'AccountId') || (type.toString().trim() == 'AccountId')) {
+
 		if (typeof value == 'string') {
 			return ss58Decode(value);
 		}
@@ -397,7 +559,7 @@ function encode(value, type = null) {
 				return toLE(value, 16)
 			case 'Index':
 			case 'u64':
-			return toLE(value, 8)
+				return toLE(value, 8)
 			case 'AccountIndex':
 			case 'u32':
 				return toLE(value, 4)
@@ -473,4 +635,7 @@ function encode(value, type = null) {
 	throw `Value cannot be encoded as type: ${value}, ${type}`
 }
 
-module.exports = { decode, encode }
+module.exports = {
+	decode,
+	encode
+}

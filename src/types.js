@@ -64,6 +64,9 @@ class Hash extends Uint8Array {
 	toRightHex() {
 		return bytesToRIHex(this)
 	}
+	toHex() {
+		return bytesToHex(this)
+	}
 	toJSON() {
 		return {
 			_type: 'Hash',
@@ -186,13 +189,13 @@ class BtcBestHeader {
 
 
 class BtcBlockHeader {
-	constructor(version,parent,merkle,time,bits,nonce){
-		this.version=version
-		this.previous_header_hash=parent
-		this.merkle_root_hash=merkle
-		this.time=time
-		this.bits=bits
-		this.nonce=nonce
+	constructor(version, parent, merkle, time, bits, nonce) {
+		this.version = version
+		this.previous_header_hash = parent
+		this.merkle_root_hash = merkle
+		this.time = time
+		this.bits = bits
+		this.nonce = nonce
 	}
 	toJSON() {
 		return {
@@ -206,6 +209,83 @@ class BtcBlockHeader {
 				'bits': this.bits,
 				'nonce': this.nonce
 			}
+		}
+	}
+}
+
+class BtcAddress {
+	constructor(kind, network, hash) {
+		this.kind = kind
+		this.network = network
+		this.hash = hash
+	}
+	toJSON() {
+		return {
+			_type: 'BtcAddress',
+			data: {
+				'kind': this.kind,
+				'network': this.network,
+				'hash': this.hash
+			}
+		}
+	}
+}
+
+
+class BtcUTXO {
+	constructor(txid, index, balance, is_spent) {
+		this.txid = txid
+		this.index = index
+		this.balance = balance
+		this.is_spent = is_spent
+	}
+	toJSON() {
+		return {
+			_type: 'BtcUTXO',
+			data: {
+				'txid': this.txid.toHex(),
+				'index': this.index,
+				'balance': this.balance,
+				'is_spend': this.is_spent
+			}
+		}
+	}
+}
+
+class BtcTxType {
+	constructor(txtype) {
+		this.txtype = txtype
+	}
+	toName() {
+		if (0 == this.txtype) {
+			return 'Withdraw';
+		} else if (1 == this.txtype) {
+			return 'Deposit';
+		} else if (2 == this.txtype) {
+			return 'Register';
+		} else if (3 == this.txtype) {
+			return 'RegisterDeposit';
+		}
+		return 'NoDefind';
+	}
+	toJSON() {
+		return {
+			_type: 'BtcTxType',
+			data: {
+				'txtype': this.txtype
+			}
+		}
+	}
+}
+
+class BtcTranscation {
+	constructor() {
+
+	}
+	toJSON() {
+		return {
+			_type: 'BtcTranscation',
+			data: {}
 		}
 	}
 }
@@ -252,5 +332,9 @@ module.exports = {
 	TransactionEra,
 	reviver,
 	BtcBestHeader,
-	BtcBlockHeader
+	BtcBlockHeader,
+	BtcAddress,
+	BtcTxType,
+	BtcTranscation,
+	BtcUTXO
 }
