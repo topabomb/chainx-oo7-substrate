@@ -9,4 +9,5 @@ node example.chain.js
 node example.system.js
 node example.runtime.js
 node example.account.js
+node example.bridge.js
 ```
