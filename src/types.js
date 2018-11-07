@@ -10,7 +10,13 @@ function toLE(val, bytes) {
 	}
 	return r;
 }
-
+function stringToBytes(s) {
+	var data = new VecU8(s.length);
+	for (var i = 0; i < s.length; i++) {
+		data[i] = s.charCodeAt(i);
+	}
+	return data;
+}
 function bytesToHex(uint8arr) {
 	if (!uint8arr) {
 		return '';
@@ -45,6 +51,9 @@ class VecU8 extends Uint8Array {
 			_type: 'VecU8',
 			data: Array.from(this)
 		}
+	}
+	toString() {
+		return Buffer.from(this).toString('utf8')
 	}
 }
 
@@ -148,6 +157,10 @@ class Balance extends BigNumber {
 		return new Balance(this - b)
 	}
 }
+
+class Amount extends Balance { }
+class Price extends Balance { }
+class TokenBalance extends Balance { }
 
 class TransactionEra {
 	constructor(period, phase) {
@@ -290,6 +303,157 @@ class BtcTranscation {
 	}
 }
 
+class OrderPair {
+	constructor(first, second, precision) {
+		this.first = first;
+		this.second = second;
+		this.precision = precision;
+	}
+
+	toString() {
+		return this.first + '/' + this.second + '/' + this.precision;
+	}
+}
+
+class Token {
+	constructor(symbol, token_desc, precision) {
+		this.symbol = symbol;
+		this.token_desc = token_desc;
+		this.precision = precision;
+	}
+	symbol() {
+		return this.symbol.toString();
+	}
+}
+
+class OrderT {
+
+	constructor(pair, index, ordertype, user, amount, hasfill_amount, price, create_time, lastupdate_time, status, fill_index) {
+		this.pair = pair;
+		this.index = index;
+		this.ordertype = ordertype;
+		this.user = user;
+		this.amount = amount;
+		this.hasfill_amount = hasfill_amount;
+		this.price = price;
+		this.create_time = create_time;
+		this.lastupdate_time = lastupdate_time;
+		this.status = status;
+		this.fill_index = fill_index;
+	}
+
+	toJSON() {
+		return {
+			_type: 'OrderT',
+			data: {
+				'pair': this.pair,
+				'index': this.index,
+				'ordertype': this.ordertype,
+				'user': this.user,
+				'amount': this.amount,
+				'hasfill_amount': this.hasfill_amount,
+				'price': this.price,
+				'create_time': this.create_time,
+				'lastupdate_time': this.lastupdate_time,
+				'status': this.status,
+				'fill_index': this.fill_index
+			}
+		}
+	}
+}
+
+class FillT {
+	constructor(pair, index, maker_user, taker_user, maker_user_order_index, taker_user_order_index, price, amount, maker_fee, taker_fee, time) {
+		this.pair = pair;
+		this.index = index;
+		this.maker_user = maker_user;
+		this.taker_user = taker_user;
+		this.maker_user_order_index = maker_user_order_index;
+		this.taker_user_order_index = taker_user_order_index;
+		this.price = price;
+		this.amount = amount;
+		this.maker_fee = maker_fee;
+		this.taker_fee = taker_fee;
+		this.time = time;
+	}
+
+	toJSON() {
+		return {
+			_type: 'FillT',
+			data: {
+				'pair': this.pair,
+				'index': this.index,
+				'maker_user': this.maker_user,
+				'taker_user': this.taker_user,
+				'maker_user_order_index': this.maker_user_order_index,
+				'taker_user_order_index': this.taker_user_order_index,
+				'price': this.price,
+				'amount': this.amount,
+				'maker_fee': this.maker_fee,
+				'taker_fee': this.taker_fee,
+				'time': this.time
+			}
+		}
+	}
+}
+
+
+class OrderType {
+	constructor(_type) {
+
+		switch (_type) {
+			case 'Buy':
+			case 0:
+				this._type = 0;
+				this.__type = 'Buy';
+				break;
+			case 'Sell':
+			case 1:
+				this._type = 1;
+				this.__type = 'Sell';
+				break;
+			default:
+				break;
+		}
+
+	}
+
+	toString() {
+		return this.__type;
+	}
+}
+
+class OrderStatus {
+	constructor(status) {
+		switch (status) {
+			case 0:
+				this.status = 'FillNo';
+				break;
+			case 1:
+				this.status = 'FillPart';
+				break;
+			case 2:
+				this.status = 'FillAll';
+				break;
+			case 3:
+				this.status = 'FillPartAndCancel';
+				break;
+			case 4:
+				this.status = 'Cancel';
+				break;
+			default:
+				this.status = 'NotDefined';
+				break;
+		}
+	}
+	toString() {
+		return this.status;
+	}
+
+}
+
+class Symbol extends VecU8 { }
+
 function reviver(key, bland) {
 	if (typeof bland == 'object' && bland) {
 		switch (bland._type) {
@@ -336,5 +500,15 @@ module.exports = {
 	BtcAddress,
 	BtcTxType,
 	BtcTranscation,
-	BtcUTXO
+	BtcUTXO,
+	OrderPair,
+	OrderType,
+	Amount,
+	Price,
+	Symbol,
+	Token,
+	TokenBalance,
+	OrderT,
+	OrderStatus,
+	FillT
 }

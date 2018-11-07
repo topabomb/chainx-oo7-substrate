@@ -77,12 +77,11 @@ substrate.runtimeUp.then(() => {
         let number = parseInt(data.number)
 
         bridgeofbtc.hashsForNumber(number).tie(hashlist => {
-            for( var j=0;j<hashlist.length;j++)
-            {
+            for (var j = 0; j < hashlist.length; j++) {
                 console.log('#hashsForNumber:' + number + '->0x' + hash.toRightHex())
             }
             //第一个
-            var hash=hashlist[0];
+            var hash = hashlist[0];
 
             bridgeofbtc.numberForHash(hash).tie(height => {
                 console.log('#NumberForHash:' + height)

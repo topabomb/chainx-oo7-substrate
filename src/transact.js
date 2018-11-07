@@ -2,18 +2,20 @@ const { Bond } = require('oo7')
 const { SubscriptionBond } = require('./subscriptionBond')
 const { encode } = require('./codec')
 const { secretStore } = require('./secretStore')
-const {bytesToHex,toLE}=require('./utils')
+const { bytesToHex, toLE } = require('./utils')
 const { TransactionEra, AccountIndex } = require('./types')
 const { runtimeUp, runtime, chain } = require('./bonds')
-
+const {
+	ss58Decode
+} = require('./ss58')
 
 class TransactionBond extends SubscriptionBond {
-	constructor (data) {
-		super('author_submitAndWatchExtrinsic', ['0x' + bytesToHex(data)], null, {sending: true})
+	constructor(data) {
+		super('author_submitAndWatchExtrinsic', ['0x' + bytesToHex(data)], null, { sending: true })
 	}
 }
 
-function composeTransaction (sender, call, index, era, checkpoint, senderAccount, secretKey) {
+function composeTransaction(sender, call, index, era, checkpoint, senderAccount, secretKey) {
 	return new Promise((resolve, reject) => {
 		if (typeof sender == 'string') {
 			sender = ss58Decode(sender)
@@ -26,8 +28,8 @@ function composeTransaction (sender, call, index, era, checkpoint, senderAccount
 		let e = encode([
 			index, call, era, checkpoint
 		], [
-			'Index', 'Call', 'TransactionEra', 'Hash'
-		])
+				'Index', 'Call', 'TransactionEra', 'Hash'
+			])
 
 		signature = secretKey ? secretStore().signWithSecret(secretKey, e) : secretStore().sign(senderAccount, e)
 		let signedData = encode(encode({
@@ -51,7 +53,7 @@ function composeTransaction (sender, call, index, era, checkpoint, senderAccount
 // }
 function post(tx, secretKey) {
 	return Bond.all([tx, chain.height, runtimeUp]).map(([o, height, unused]) => {
-		let {sender, call, index, longevity, compact} = o
+		let { sender, call, index, longevity, compact } = o
 		// defaults
 		longevity = typeof longevity === 'undefined' ? 256 : longevity
 		compact = typeof compact === 'undefined' ? true : compact

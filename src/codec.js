@@ -18,13 +18,21 @@ const {
 	BtcAddress,
 	BtcTxType,
 	BtcTranscation,
-	BtcUTXO
+	BtcUTXO,
+	OrderPair,
+	OrderType,
+	Symbol,
+	Token,
+	OrderT,
+	OrderStatus,
+	FillT
 } = require('./types')
 const {
 	toLE,
 	leToNumber,
 	hexToBytes,
-	bytesToHex
+	bytesToHex,
+	stringToBytes
 } = require('./utils')
 const metadata = require('./metadata')
 const TextDecoder = process.browser ? window.TextDecoder : require('util').TextDecoder;
@@ -178,20 +186,12 @@ function decode(input, type) {
 		res._type = type;
 	} else {
 
-		switch (type) {
-			/*			case 'Call':
-						case 'Proposal': {
-							let c = Calls[input.data[0]];
-							res = type === 'Call' ? new Call : new Proposal;
-							res.module = c.name;
-							c = c[type == 'Call' ? 'calls' : 'priv_calls'][input.data[1]];
-							input.data = input.data.slice(2);
-							res.name = c.name;
-							res.params = c.params.map(p => ({ name: p.name, type: p.type, value: decode(input, p.type) }));
-							break;
-						}*/
+		switch (type.trim()) {
+
 			case 'Event':
 				{
+					console.log('Event---------------------')
+
 					let events = metadata.outerEvent.events
 					let moduleIndex = decode(input, 'u8')
 					let module = events[moduleIndex][0]
@@ -219,6 +219,9 @@ function decode(input, type) {
 					input.data = input.data.slice(32);
 					break;
 				}
+			case 'TokenBalance':
+			case 'Amount':
+			case 'Price':
 			case 'Balance':
 				{
 					res = leToNumber(input.data.slice(0, 16));
@@ -308,6 +311,12 @@ function decode(input, type) {
 					input.data = input.data.slice(8);
 					break;
 				}
+			case 'u128':
+				{
+					res = leToNumber(input.data.slice(0, 16));
+					input.data = input.data.slice(16);
+					break;
+				}
 			case 'bool':
 				{
 					res = !!input.data[0];
@@ -326,6 +335,7 @@ function decode(input, type) {
 					input.data = input.data.slice(size);
 					break;
 				}
+			case 'Symbol':
 			case 'Vec<u8>':
 				{
 					let size = decode(input, 'Compact<u32>');
@@ -429,6 +439,75 @@ function decode(input, type) {
 					res = new BtcUTXO(txid, index, balance, is_spent);
 					break;
 				}
+			case 'Token':
+				{
+					let symbol = decode(input, 'Vec<u8>');
+					let token_desc = decode(input, 'Vec<u8>');
+					let precision = decode(input, 'u16');
+
+					res = new Token(symbol, token_desc, precision);
+					break;
+				}
+			case 'OrderPair':
+				{
+					let first = decode(input, 'Vec<u8>');
+					let second = decode(input, 'Vec<u8>');
+					let precision = decode(input, 'u32');
+
+					res = new OrderPair(first, second, precision);
+					break;
+				}
+			case 'OrderType':
+				{
+
+					let orderttype = decode(input, 'u8');
+					res = new OrderType(orderttype);
+
+					break;
+				}
+			case 'OrderStatus':
+				{
+					let status = decode(input, 'u8');
+					res = new OrderStatus(status);
+					break;
+				}
+			case 'OrderT<T>':
+				{
+					//console.log(input)
+					let pair = decode(input, 'OrderPair');
+					let index = decode(input, 'u64');
+					let ordertype = decode(input, 'OrderType');
+					let user = decode(input, 'AccountId');
+					let amount = decode(input, 'Amount');
+					let hasfill_amount = decode(input, 'Amount');
+					let price = decode(input, 'Price');
+					let create_time = decode(input, 'BlockNumber');
+					let lastupdate_time = decode(input, 'BlockNumber');
+					let status = decode(input, 'OrderStatus');
+					let fill_index = decode(input, 'Vec<u128>');
+
+					res = new OrderT(pair, index, ordertype, user, amount, hasfill_amount, price, create_time, lastupdate_time, status, fill_index);
+
+					break;
+				}
+			case 'FillT<T>':
+				{
+					let pair = decode(input, 'OrderPair');
+					let index = decode(input, 'u128');
+					let maker_user = decode(input, 'AccountId');
+					let taker_user = decode(input, 'AccountId');
+					let maker_user_order_index = decode(input, 'u64');
+					let taker_user_order_index = decode(input, 'u64');
+					let price = decode(input, 'Price');
+					let amount = decode(input, 'Amount');
+					let maker_fee = decode(input, 'Amount');
+					let taker_fee = decode(input, 'Amount');
+					let time = decode(input, 'BlockNumber');
+
+					res = new FillT(pair, index, maker_user, taker_user, maker_user_order_index, taker_user_order_index, price, amount, maker_fee, taker_fee, time);
+
+					break;
+				}
 			default:
 				{
 					let v = type.match(/^Vec<(.*)>$/);
@@ -462,8 +541,10 @@ function decode(input, type) {
 }
 
 function encode(value, type = null) {
+	//console.log('x'+type+value+typeof type+typeof value)
 	// if an array then just concat
 	if (type instanceof Array) {
+
 		if (value instanceof Array) {
 			let x = value.map((i, index) => encode(i, type[index]));
 			let res = new Uint8Array();
@@ -475,6 +556,7 @@ function encode(value, type = null) {
 			})
 			return res
 		} else {
+
 			throw 'If type is array, value must be too'
 		}
 	}
@@ -515,7 +597,7 @@ function encode(value, type = null) {
 	}
 
 	// other type-specific transforms
-	if (type == 'Vec<u8>') {
+	if (type == 'Vec<u8>' || type.trim() == 'Symbol') {
 		if (typeof value == 'object' && value instanceof Uint8Array) {
 			return new Uint8Array([...encode(value.length, 'Compact<u32>'), ...value])
 		}
@@ -553,7 +635,10 @@ function encode(value, type = null) {
 	}
 
 	if (typeof value == 'number') {
-		switch (type) {
+		switch (type.trim()) {
+			case 'TokenBalance':
+			case 'Price':
+			case 'Amount':
 			case 'Balance':
 			case 'u128':
 				return toLE(value, 16)
@@ -621,6 +706,19 @@ function encode(value, type = null) {
 		return encode(value, type.substr(1, type.length - 2).split(','))
 	}
 
+	if (type.trim() == 'OrderPair' && typeof value == 'object') {
+
+		return new Uint8Array([...encode(value.first.length, 'Compact<u32>'), ...stringToBytes(value.first), ...encode(value.second.length, 'Compact<u32>'), ...stringToBytes(value.second), ...toLE(value.precision, 4)]);
+	}
+	if (type.trim() == 'Token' && typeof value == 'object') {
+
+		return new Uint8Array([...encode(value.symbol.length, 'Compact<u32>'), ...stringToBytes(value.symbol), ...encode(value.token_desc.length, 'Compact<u32>'), ...stringToBytes(value.token_desc), ...toLE(value.precision, 2)]);
+	}
+	if (type.trim() == 'OrderType') {
+		return toLE(value._type, 1);
+	}
+
+
 	// Maybe it's pre-encoded?
 	if (typeof value == 'object' && value instanceof Uint8Array) {
 		switch (type) {
@@ -631,6 +729,7 @@ function encode(value, type = null) {
 		}
 		return value
 	}
+
 
 	throw `Value cannot be encoded as type: ${value}, ${type}`
 }
