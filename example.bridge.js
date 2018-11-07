@@ -58,7 +58,7 @@ substrate.runtimeUp.then(() => {
 
                     bridgeofbtc.txSet(data[i]).tie(tx => {
                         console.log('AccountId#' + '=>' + bytesToHex(tx[0]))
-                        console.log('btcAddress#' + '=>' + toBtcAddress(tx[1].hash.toHex(), 'testnet')) 
+                        console.log('btcAddress#' + '=>' + toBtcAddress(tx[1].hash.toHex(), 'testnet'))
                         console.log('TxType#' + '=>' + (tx[2].toName()))
                         console.log('value#' + '=>' + tx[3])
                     })
@@ -76,11 +76,16 @@ substrate.runtimeUp.then(() => {
 
         let number = parseInt(data.number)
 
-        bridgeofbtc.hashForNumber(number).tie(hash => {
-            console.log('#hashForNumber:' + number + '->0x' + hash.toRightHex())
+        bridgeofbtc.hashsForNumber(number).tie(hashlist => {
+            for( var j=0;j<hashlist.length;j++)
+            {
+                console.log('#hashsForNumber:' + number + '->0x' + hash.toRightHex())
+            }
+            //第一个
+            var hash=hashlist[0];
 
-            bridgeofbtc.headerNumberFor(hash).tie(height => {
-                console.log('#headerNumberFor:' + height)
+            bridgeofbtc.numberForHash(hash).tie(height => {
+                console.log('#NumberForHash:' + height)
             })
 
             bridgeofbtc.blockHeaderFor(hash).then(data => {
@@ -93,6 +98,8 @@ substrate.runtimeUp.then(() => {
                 console.log('#BlockHeaderFor:' + hash.toRightHex() + '->time:' + header.time)
                 console.log('#BlockHeaderFor:' + hash.toRightHex() + '->bits:' + header.bits)
                 console.log('#BlockHeaderFor:' + hash.toRightHex() + '->nonce:' + header.nonce)
+                let blocknumber = data[2]
+                console.log('#BlockHeaderFor:' + hash.toRightHex() + '->blocknumber:' + blocknumber)
 
             })
 
