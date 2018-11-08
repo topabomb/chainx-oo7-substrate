@@ -52,6 +52,9 @@ class VecU8 extends Uint8Array {
 			data: Array.from(this)
 		}
 	}
+	toPrimitive() {
+		return Buffer.from(this).toString('utf8')
+	}
 	toString() {
 		return Buffer.from(this).toString('utf8')
 	}
@@ -61,6 +64,11 @@ class AccountId extends Uint8Array {
 	toHex() {
 		return bytesToHex(Array.from(this))
 	}
+
+	toPrimitive() {
+		return this.toHex()
+	}
+
 	toJSON() {
 		return {
 			_type: 'AccountId',
@@ -100,6 +108,10 @@ class BlockNumber extends Number {
 			_type: 'BlockNumber',
 			data: this + 0
 		}
+	}
+
+	toPrimitive() {
+		return this.toString(10)
 	}
 }
 
@@ -155,6 +167,9 @@ class Balance extends BigNumber {
 	}
 	sub(b) {
 		return new Balance(this - b)
+	}
+	toPrimitive() {
+		return this.toString(10)
 	}
 }
 
@@ -482,20 +497,27 @@ function reviver(key, bland) {
 	return bland;
 }
 
-class IntentionProfsT {
-	constructor(params = {}) {
-		this.data = params
-	}
-
+class Struct extends Map {
 	toJSON() {
-		return {
-			_type: 'IntentionProfsT',
-			data: {
-				...this.data
+		const json = {}
+		for(const [key, value] of this.entries()) {
+			if(typeof value !== 'object') {
+				json[key] = value
+			} else if(typeof value.toPrimitive === 'function') {
+				json[key] = value.toPrimitive()
+			} else if(typeof value.toJSON === 'function') {
+				json[key] = value.toJSON()
 			}
 		}
+		return json
 	}
 }
+
+class IntentionProfsT extends Struct {}
+
+class NominatorProfsT extends Struct {}
+
+class NominationRecordT extends Struct {}
 
 module.exports = {
 	VecU8,
@@ -526,5 +548,7 @@ module.exports = {
 	OrderT,
 	OrderStatus,
 	FillT,
-	IntentionProfsT
+	IntentionProfsT,
+	NominatorProfsT,
+	NominationRecordT,
 }
