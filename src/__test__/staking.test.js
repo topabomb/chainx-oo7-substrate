@@ -11,7 +11,7 @@ describe('staking', () => {
   test('intentionProfiles', async done => {
     const staking = await getRuntimeStaking();
     staking.intentionProfiles('5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ').then(data => {
-      console.log(data);
+      console.log(data.toJSON());
       // expect(data).toBe('')
       // done(data);
     });

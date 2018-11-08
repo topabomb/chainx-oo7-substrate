@@ -482,20 +482,19 @@ function reviver(key, bland) {
 	return bland;
 }
 
-class IntentionProfsT {
-	constructor(params = {}) {
-		this.data = params
-	}
-
+class Struct extends Map {
 	toJSON() {
-		return {
-			_type: 'IntentionProfsT',
-			data: {
-				...this.data
-			}
-		}
+		const json = {}
+		for(const [key, value] of this.entries()) json[key] = (value && value.toJSON) ? value.toJSON() : value
+		return json
 	}
 }
+
+class IntentionProfsT extends Struct {}
+
+class NominatorProfsT extends Struct {}
+
+class NominationRecordT extends Struct {}
 
 module.exports = {
 	VecU8,
@@ -526,5 +525,7 @@ module.exports = {
 	OrderT,
 	OrderStatus,
 	FillT,
-	IntentionProfsT
+	IntentionProfsT,
+	NominatorProfsT,
+	NominationRecordT,
 }

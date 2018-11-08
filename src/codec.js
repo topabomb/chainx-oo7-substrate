@@ -26,7 +26,9 @@ const {
 	OrderT,
 	OrderStatus,
 	FillT,
-	IntentionProfsT
+	IntentionProfsT,
+	NominatorProfsT,
+	NominationRecordT
 } = require('./types')
 const {
 	toLE,
@@ -511,16 +513,34 @@ function decode(input, type) {
 				}
 			case 'IntentionProfs<AccountId, Balance, BlockNumber>':
 				{
-					let name = decode(input, 'Vec<u8>')
-					let url = decode(input, 'Vec<u8>')
-					let is_active = decode(input, 'bool')
-					let jackpot = decode(input, 'Balance')
-					let nominators = decode(input, 'Vec<AccountId>')
-					let total_nomination = decode(input, 'Balance')
-					let last_total_vote_weight = decode(input, 'u64')
-					let last_total_vote_weight_update = decode(input, 'BlockNumber')
-
-					res = new IntentionProfsT({name, url, is_active, jackpot, nominators, total_nomination, last_total_vote_weight, last_total_vote_weight_update})
+					res = new IntentionProfsT(new Map([
+						['name', decode(input, 'Vec<u8>')],
+						['url', decode(input, 'Vec<u8>')],
+						['is_active', decode(input, 'bool')],
+						['jackpot', decode(input, 'Balance')],
+						['nominators', decode(input, 'Vec<AccountId>')],
+						['total_nomination', decode(input, 'Balance')],
+						['last_total_vote_weight', decode(input, 'u64')],
+						['last_total_vote_weight_update', decode(input, 'BlockNumber')],
+					]))
+					break;
+				}
+				case 'NominatorProfs<AccountId, Balance>':
+				{
+					res = new NominatorProfsT(new Map([
+						['total_nomination', decode(input, 'Balance')],
+						['locked', decode(input, 'Balance')],
+						['nominees', decode(input, 'Vec<AccountId>')],
+					]))
+					break;
+				}
+			case 'NominationRecord<Balance, BlockNumber>':
+				{
+					res = new NominationRecordT(new Map([
+						['nomination', decode(input, 'Balance')],
+						['last_vote_weight', decode(input, 'u64')],
+						['last_vote_weight_update', decode(input, 'BlockNumber')],
+					]))
 					break;
 				}
 			default:
