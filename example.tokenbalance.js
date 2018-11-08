@@ -34,7 +34,8 @@ const {
 window = global;
 
 //设置节点
-substrate.setNodeUri(['ws://127.0.0.1:8082']);
+//substrate.setNodeUri(['ws://127.0.0.1:8082']);
+substrate.setNodeUri(['ws://192.168.1.237:8084']);
 
 var alice_seed = 'Alice                           ';
 var alice_account_58 = '5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ';
@@ -105,7 +106,7 @@ substrate.runtimeUp.then(() => {
 
 
     // // token 转账
-    var symbol = new Symbol(stringToBytes('x-btc'));
+    var symbol = new Symbol(stringToBytes('btc'));
     substrate.calls.tokenbalances.transferToken(alan.account, symbol, 10).then(transfer_token => {
 
         substrate.post({
@@ -113,6 +114,19 @@ substrate.runtimeUp.then(() => {
             call: transfer_token
         }).tie((data) => {
             console.log(data)
+
+        })
+    })
+
+    // 申请提现 
+    
+    substrate.calls.financialrecords.withdraw( symbol, 100).then(withdraw => {
+
+        substrate.post({
+            sender: alan.account,
+            call: withdraw
+        }).tie((data) => {
+            console.log('withdraw='+ data )
 
         })
     })
