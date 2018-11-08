@@ -25,7 +25,8 @@ const {
 	Token,
 	OrderT,
 	OrderStatus,
-	FillT
+	FillT,
+	IntentionProfsT
 } = require('./types')
 const {
 	toLE,
@@ -506,6 +507,20 @@ function decode(input, type) {
 
 					res = new FillT(pair, index, maker_user, taker_user, maker_user_order_index, taker_user_order_index, price, amount, maker_fee, taker_fee, time);
 
+					break;
+				}
+			case 'IntentionProfs<AccountId, Balance, BlockNumber>':
+				{
+					let name = decode(input, 'Vec<u8>')
+					let url = decode(input, 'Vec<u8>')
+					let is_active = decode(input, 'bool')
+					let jackpot = decode(input, 'Balance')
+					let nominators = decode(input, 'Vec<AccountId>')
+					let total_nomination = decode(input, 'Balance')
+					let last_total_vote_weight = decode(input, 'u64')
+					let last_total_vote_weight_update = decode(input, 'BlockNumber')
+
+					res = new IntentionProfsT({name, url, is_active, jackpot, nominators, total_nomination, last_total_vote_weight, last_total_vote_weight_update})
 					break;
 				}
 			default:

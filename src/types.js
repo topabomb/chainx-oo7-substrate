@@ -482,6 +482,21 @@ function reviver(key, bland) {
 	return bland;
 }
 
+class IntentionProfsT {
+	constructor(params = {}) {
+		this.data = params
+	}
+
+	toJSON() {
+		return {
+			_type: 'IntentionProfsT',
+			data: {
+				...this.data
+			}
+		}
+	}
+}
+
 module.exports = {
 	VecU8,
 	AccountId,
@@ -510,5 +525,6 @@ module.exports = {
 	TokenBalance,
 	OrderT,
 	OrderStatus,
-	FillT
+	FillT,
+	IntentionProfsT
 }
