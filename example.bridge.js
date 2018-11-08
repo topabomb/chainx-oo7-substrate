@@ -32,7 +32,7 @@ window = global;
 //设置节点
 //substrate.setNodeUri(['ws://127.0.0.1:8082']);
 //substrate.setNodeUri(['ws://192.168.1.237:8084']);
-substrate.setNodeUri(['ws://192.168.1.25:8082']);
+substrate.setNodeUri(['ws://192.168.1.25:9067']);
 //substrate.setNodeUri(['ws://47.105.73.172:8082']);
 
 var alice_seed = 'Alice';
@@ -49,7 +49,10 @@ console.log('address#' + alice_account_address);
 substrate.runtimeUp.then(() => {
 
     function getTxByNum(number) {
-        bridgeofbtc.hashForNumber(number).tie(hash => {
+        bridgeofbtc.hashsForNumber(number).tie(hashlist => {
+            if( hashlist.length == 0)
+                return;
+            var hash = hashlist[0];
             console.log('#num=' + number + ',hash=' + hash.toRightHex())
             bridgeofbtc.blockTxids(hash).tie(data => {
                 //console.log(data)
@@ -77,11 +80,13 @@ substrate.runtimeUp.then(() => {
         let number = parseInt(data.number)
 
         bridgeofbtc.hashsForNumber(number).tie(hashlist => {
+            //第一个
+            var hash = hashlist[0];
+
             for (var j = 0; j < hashlist.length; j++) {
                 console.log('#hashsForNumber:' + number + '->0x' + hash.toRightHex())
             }
-            //第一个
-            var hash = hashlist[0];
+            
 
             bridgeofbtc.numberForHash(hash).tie(height => {
                 console.log('#NumberForHash:' + height)
@@ -102,15 +107,40 @@ substrate.runtimeUp.then(() => {
 
             })
 
+            bridgeofbtc.blockTxids(hash).tie(data => {
+                //console.log(data)
+                for (var i = 0; i < data.length; i++) {
+                    console.log('#blockTxids:[' + i + '] ' + data[i].toRightHex())
+
+                    bridgeofbtc.txSet(data[i]).tie(tx => {
+                        console.log('AccountId#' + '=>' + bytesToHex(tx[0]))
+                        console.log('btcAddress#' + '=>' + toBtcAddress(tx[1].hash.toHex(), 'testnet'))
+                        console.log('TxType#' + '=>' + (tx[2].toName()))
+                        console.log('value#' + '=>' + tx[3])
+                    })
+
+                }
+            })
+
 
         })
     })
 
-    getTxByNum(918004)
+    //getTxByNum(918004)
 
 
     bridgeofbtc.utxoMaxIndex.tie(maxindex => {
         console.log('UTXOMaxIndex#' + maxindex)
+        for(var i=1;i<20;i++){
+            (function(index){
+                bridgeofbtc.utxoSet(index).tie(utxo => {
+                    console.log('utxo txid#' + utxo.txid.toRightHex())
+                    console.log('utxo index#' + utxo.index)
+                    console.log('utxo balance#' + utxo.balance)
+                    console.log('utxo is_spent#' + utxo.is_spent)
+                })
+            })(maxindex - i)
+        }
         bridgeofbtc.utxoSet(maxindex - 1).tie(utxo => {
             console.log('utxo txid#' + utxo.txid.toRightHex())
             console.log('utxo index#' + utxo.index)
