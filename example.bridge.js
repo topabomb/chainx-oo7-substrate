@@ -39,11 +39,11 @@ var alice_seed = 'Alice';
 var alice_account_58 = '5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ';
 var alice_account_u8 = substrate.ss58Decode(alice_account_58); //58地址=》u8
 var alice_account_public = '0x' + bytesToHex(alice_account_u8); //公钥
-var alice_account_address = substrate.ss58Encode(alice_account_u8);
+//var alice_account_address = substrate.ss58Encode(alice_account_u8);
 
 console.log('decode#' + alice_account_u8);
 console.log('public#' + alice_account_public);
-console.log('address#' + alice_account_address);
+//console.log('address#' + alice_account_address);
 
 
 substrate.runtimeUp.then(() => {
@@ -86,7 +86,6 @@ substrate.runtimeUp.then(() => {
             for (var j = 0; j < hashlist.length; j++) {
                 console.log('#hashsForNumber:' + number + '->0x' + hash.toRightHex())
             }
-            
 
             bridgeofbtc.numberForHash(hash).tie(height => {
                 console.log('#NumberForHash:' + height)
