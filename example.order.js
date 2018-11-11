@@ -33,6 +33,7 @@ window = global;
 
 //设置节点
 substrate.setNodeUri(['ws://127.0.0.1:8082']);
+//substrate.setNodeUri(['ws://192.168.1.237:8084']);
 
 var alice_seed = 'Alice';
 var alice_account_58 = '5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ';
@@ -133,7 +134,7 @@ substrate.runtimeUp.then(() => {
     })
     print_orderlist(alice.account, pair)
 
-    //挂卖掉
+    // //挂卖掉
     let sell = new OrderType('Sell');
     substrate.calls.pendingorders.putOrder(pair, sell, 20, 10).then(sell_order => {
 
@@ -159,4 +160,45 @@ substrate.runtimeUp.then(() => {
 
     //成交历史
     print_filllist(pair);
+
+
+    function getNode(nodeid) {
+        substrate.runtime.matchorder.bidListCache(nodeid).then(node => {
+            console.log(node)
+            console.log('-------------' + nodeid + '---------')
+            console.log('#node->data:' + JSON.stringify(node.get('data').toJSON()))
+            //console.log(node.get('data').get('list'))
+            for (var i = 0; i < node.get('data').get('list').length; i++) {
+                substrate.runtime.matchorder.bidOf(node.get('data').get('list')[i]).then(biddetail => {
+                    console.log('-------------#id->' + biddetail.get('id'))
+                    console.log('#pair->' + biddetail.get('pair'))
+                    console.log('#order_type->' + biddetail.get('order_type'))
+                    console.log('#user->' + biddetail.get('user'))
+                    console.log('#order_index->' + biddetail.get('order_index'))
+                    console.log('#price->' + biddetail.get('price'))
+                    console.log('#amount->' + biddetail.get('amount'))
+                    console.log('#time->' + biddetail.get('time'))
+                })
+            }
+            console.log('#node->prev:' + node.get('prev'))
+            console.log('#node->next:' + node.get('next'))
+
+            if (node.get('next') > 0)
+                getNode(node.next)
+
+        })
+    }
+    function getBidList(pair, type) {
+        substrate.runtime.matchorder.bidListHeaderFor([pair, type]).then(head => {
+            //console.log(head)
+            console.log('#header->multi_key=>(', head.get('multi_key')[0].toString() + ',' + head.get('multi_key')[1].toString() + ')')
+            console.log('#header->index=>', head.get('index'))
+
+            getNode(head.get('index'))
+        })
+    }
+
+    //卖单盘口
+    getBidList(pair, sell);
+
 })

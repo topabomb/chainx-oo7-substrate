@@ -500,12 +500,12 @@ function reviver(key, bland) {
 class Struct extends Map {
 	toJSON() {
 		const json = {}
-		for(const [key, value] of this.entries()) {
-			if(typeof value !== 'object') {
+		for (const [key, value] of this.entries()) {
+			if (typeof value !== 'object') {
 				json[key] = value
-			} else if(typeof value.toPrimitive === 'function') {
+			} else if (typeof value.toPrimitive === 'function') {
 				json[key] = value.toPrimitive()
-			} else if(typeof value.toJSON === 'function') {
+			} else if (typeof value.toJSON === 'function') {
 				json[key] = value.toJSON()
 			}
 		}
@@ -513,11 +513,18 @@ class Struct extends Map {
 	}
 }
 
-class IntentionProfsT extends Struct {}
+class IntentionProfsT extends Struct { }
 
-class NominatorProfsT extends Struct {}
+class NominatorProfsT extends Struct { }
 
-class NominationRecordT extends Struct {}
+class NominationRecordT extends Struct { }
+
+class MultiNodeIndexT extends Struct { }
+
+class MatchNodeT extends Struct { }
+class Bid extends Struct { }
+class BidDetailT extends Struct { }
+
 
 module.exports = {
 	VecU8,
@@ -551,4 +558,8 @@ module.exports = {
 	IntentionProfsT,
 	NominatorProfsT,
 	NominationRecordT,
+	MultiNodeIndexT,
+	MatchNodeT,
+	Bid,
+	BidDetailT
 }

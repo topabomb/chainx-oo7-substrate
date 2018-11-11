@@ -28,7 +28,11 @@ const {
 	FillT,
 	IntentionProfsT,
 	NominatorProfsT,
-	NominationRecordT
+	NominationRecordT,
+	MultiNodeIndexT,
+	MatchNodeT,
+	Bid,
+	BidDetailT
 } = require('./types')
 const {
 	toLE,
@@ -131,7 +135,7 @@ const transforms = {
 var decodePrefix = 0;
 
 function decode(input, type) {
-	//console.log('decode='+type+' '+typeof type)
+	//console.log('decode='+type+' '+typeof type+','+(input))
 
 	if (typeof input.data === 'undefined') {
 		input = {
@@ -148,8 +152,8 @@ function decode(input, type) {
 		type = 'EventRecord'
 	}
 
-	let dataHex = bytesToHex(input.data.slice(0, 50));
-	//	console.log(decodePrefix + 'des >>>', type, dataHex);
+	// let dataHex = bytesToHex(input.data.slice(0, 50));
+	// console.log(decodePrefix + 'des >>>', type, dataHex);
 	//	decodePrefix +=  "   ";
 
 	let res;
@@ -314,6 +318,7 @@ function decode(input, type) {
 					input.data = input.data.slice(8);
 					break;
 				}
+			case 'BidId':
 			case 'u128':
 				{
 					res = leToNumber(input.data.slice(0, 16));
@@ -525,7 +530,7 @@ function decode(input, type) {
 					]))
 					break;
 				}
-				case 'NominatorProfs<AccountId, Balance>':
+			case 'NominatorProfs<AccountId, Balance>':
 				{
 					res = new NominatorProfsT(new Map([
 						['total_nomination', decode(input, 'Balance')],
@@ -540,6 +545,48 @@ function decode(input, type) {
 						['nomination', decode(input, 'Balance')],
 						['last_vote_weight', decode(input, 'u64')],
 						['last_vote_weight_update', decode(input, 'BlockNumber')],
+					]))
+					break;
+				}
+			case 'MultiNodeIndex<(OrderPair, OrderType), BidT<T>>':
+				{
+					res = new MultiNodeIndexT(new Map([
+						['multi_key', decode(input, '(OrderPair, OrderType)')],
+						['index', decode(input, 'u128')],
+
+					]))
+					break;
+				}
+			case 'Bid':
+				{
+					res = new Bid(new Map([
+						['nodeid', decode(input, 'u128')],
+						['price', decode(input, 'Price')],
+						['sum', decode(input, 'Amount')],
+						['list', decode(input, 'Vec<BidId>')],
+					]))
+					break;
+				}
+			case 'BidDetailT<T>':
+				{
+					res = new BidDetailT(new Map([
+						['id', decode(input, 'BidId')],
+						['pair', decode(input, 'OrderPair')],
+						['order_type', decode(input, 'OrderType')],
+						['user', decode(input, 'AccountId')],
+						['order_index', decode(input, 'u64')],
+						['price', decode(input, 'Price')],
+						['amount', decode(input, 'Amount')],
+						['time', decode(input, 'BlockNumber')],
+					]))
+					break;
+				}
+			case 'Node<BidT<T>>':
+				{
+					res = new MatchNodeT(new Map([
+						['data', decode(input, 'Bid')],
+						['prev', decode(input, 'u128')],
+						['next', decode(input, 'u128')],
 					]))
 					break;
 				}
@@ -576,7 +623,7 @@ function decode(input, type) {
 }
 
 function encode(value, type = null) {
-	//console.log('x'+type+value+typeof type+typeof value)
+	//console.log('encode='+type+','+typeof type+ ','+ value)
 	// if an array then just concat
 	if (type instanceof Array) {
 
@@ -675,6 +722,7 @@ function encode(value, type = null) {
 			case 'Price':
 			case 'Amount':
 			case 'Balance':
+			case 'BidId':
 			case 'u128':
 				return toLE(value, 16)
 			case 'Index':
