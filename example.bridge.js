@@ -31,8 +31,8 @@ window = global;
 
 //设置节点
 //substrate.setNodeUri(['ws://127.0.0.1:8082']);
-//substrate.setNodeUri(['ws://192.168.1.237:8084']);
-substrate.setNodeUri(['ws://192.168.1.25:9067']);
+substrate.setNodeUri(['ws://192.168.1.237:9067']);
+//substrate.setNodeUri(['ws://192.168.1.25:9067']);
 //substrate.setNodeUri(['ws://47.105.73.172:8082']);
 
 var alice_seed = 'Alice';
@@ -146,6 +146,22 @@ substrate.runtimeUp.then(() => {
             console.log('utxo balance#' + utxo.balance)
             console.log('utxo is_spent#' + utxo.is_spent)
         })
+    })
+
+    bridgeofbtc.accountsMaxIndex.tie(maxindex => {
+        console.log('AccountsMaxIndex#' + maxindex)
+        for(var i=1;i<20;i++){
+            (function(index){
+                bridgeofbtc.accountsSet(index).tie(account => {
+                    console.log('hash#' + '=>' + bytesToHex(account[0]))
+                    console.log('btcAddress#' + '=>' + toBtcAddress(account[1].hash.toHex(), 'testnet'))
+                    console.log('AccountId#' + '=>' + (account[2].toHex()))
+                    console.log('BlockNumber#' + '=>' + (account[3]))
+                    console.log('TxType#' + '=>' + account[4].toName())
+                })
+            })(maxindex - i)
+        }
+       
     })
 
 
