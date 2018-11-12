@@ -122,7 +122,7 @@ substrate.runtimeUp.then(() => {
 
     let buy = new OrderType('Buy');
     //挂买单
-    substrate.calls.pendingorders.putOrder(pair, buy, 10, 10).then(putorder => {
+    substrate.calls.pendingorders.putOrder(pair, buy, 10, 10,"imtoken").then(putorder => {
 
         substrate.post({
             sender: alice.account,
@@ -136,7 +136,7 @@ substrate.runtimeUp.then(() => {
 
     // //挂卖掉
     let sell = new OrderType('Sell');
-    substrate.calls.pendingorders.putOrder(pair, sell, 20, 10).then(sell_order => {
+    substrate.calls.pendingorders.putOrder(pair, sell, 20, 10,"imtoken").then(sell_order => {
 
         substrate.post({
             sender: bob.account,

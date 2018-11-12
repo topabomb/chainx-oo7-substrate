@@ -468,6 +468,7 @@ class OrderStatus {
 }
 
 class Symbol extends VecU8 { }
+class Channel extends VecU8{}
 
 function reviver(key, bland) {
 	if (typeof bland == 'object' && bland) {
@@ -561,5 +562,6 @@ module.exports = {
 	MultiNodeIndexT,
 	MatchNodeT,
 	Bid,
-	BidDetailT
+	BidDetailT,
+	Channel
 }

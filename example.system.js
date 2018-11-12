@@ -18,3 +18,4 @@ system.version.tie((version) => {
 system.chain.tie((chain) => {
     console.log('chain#' + chain);
 });
+

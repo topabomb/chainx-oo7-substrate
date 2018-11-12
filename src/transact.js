@@ -25,6 +25,7 @@ function composeTransaction(sender, call, index, era, checkpoint, senderAccount,
 		} else if (!senderAccount) {
 			reject(`Invalid senderAccount when sender is account index`)
 		}
+
 		let e = encode([
 			index, call, era, checkpoint
 		], [
@@ -78,6 +79,7 @@ function post(tx, secretKey) {
 			era = new TransactionEra(period, phase)
 			eraHash = chain.hash(eraNumber)
 		}
+		
 		return {
 			sender,
 			call,

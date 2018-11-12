@@ -41,7 +41,7 @@ const {
 	bytesToHex,
 	stringToBytes
 } = require('./utils')
-const metadata = require('./metadata')
+//const metadata = require('./metadata')
 const TextDecoder = process.browser ? window.TextDecoder : require('util').TextDecoder;
 
 const transforms = {
@@ -197,8 +197,6 @@ function decode(input, type) {
 
 			case 'Event':
 				{
-					console.log('Event---------------------')
-
 					let events = metadata.outerEvent.events
 					let moduleIndex = decode(input, 'u8')
 					let module = events[moduleIndex][0]
@@ -344,6 +342,7 @@ function decode(input, type) {
 					break;
 				}
 			case 'Symbol':
+			case 'Channel':
 			case 'Vec<u8>':
 				{
 					let size = decode(input, 'Compact<u32>');
@@ -679,8 +678,13 @@ function encode(value, type = null) {
 	}
 
 	// other type-specific transforms
-	if (type == 'Vec<u8>' || type.trim() == 'Symbol') {
+	if (type == 'Vec<u8>' || type.trim() == 'Symbol' ) {
 		if (typeof value == 'object' && value instanceof Uint8Array) {
+			return new Uint8Array([...encode(value.length, 'Compact<u32>'), ...value])
+		}
+	}
+	if( type.trim()== 'Channel' ){
+		if( typeof value == 'string' ){
 			return new Uint8Array([...encode(value.length, 'Compact<u32>'), ...value])
 		}
 	}

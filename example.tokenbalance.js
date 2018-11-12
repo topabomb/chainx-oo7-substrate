@@ -35,7 +35,8 @@ window = global;
 
 //设置节点
 //substrate.setNodeUri(['ws://127.0.0.1:8082']);
-substrate.setNodeUri(['ws://192.168.1.237:8084']);
+//substrate.setNodeUri(['ws://192.168.1.237:8084']);
+substrate.setNodeUri(['ws://192.168.1.25:9067']);
 
 var alice_seed = 'Alice                           ';
 var alice_account_58 = '5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ';

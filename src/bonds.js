@@ -6,7 +6,7 @@ const { BlockNumber, Hash } = require('./types');
 const { decode, encode } = require('./codec');
 const { stringToBytes, hexToBytes, bytesToHex, toLE } = require('./utils')
 const { StorageBond } = require('./storageBond')
-const metadata = require('./metadata')
+//const metadata = require('./metadata')
 
 let chain = (() => {
 	let head = new SubscriptionBond('chain_newHead').subscriptable()
@@ -63,9 +63,9 @@ let runtimeUp = new RuntimeUp
 let onRuntimeInit = []
 
 function initialiseFromMetadata (m) {
-	if (metadata.set) {
-		metadata.set(m)
-	}
+	if( typeof metadata =='undefined')
+		metadata=m;
+
 	m.modules.forEach((m, module_index) => {
 		let o = {}
 		let c = {}
