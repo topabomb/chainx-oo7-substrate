@@ -135,7 +135,7 @@ const transforms = {
 var decodePrefix = 0;
 
 function decode(input, type) {
-	//console.log('decode='+type+' '+typeof type+','+(input))
+	//console.log('decode='+type+' '+typeof type)
 
 	if (typeof input.data === 'undefined') {
 		input = {
@@ -151,9 +151,15 @@ function decode(input, type) {
 	if (type == 'EventRecord<Event>') {
 		type = 'EventRecord'
 	}
-
-	// let dataHex = bytesToHex(input.data.slice(0, 50));
-	// console.log(decodePrefix + 'des >>>', type, dataHex);
+	// if( '(H256, keys::Address, AccountId, BlockNumber, String, TxType)' == type.trim() )
+	// {
+	// 	console.log('len='+input.data.length)
+	// 	for( var i=0;i<input.data.length;i++)
+	// 		console.log(input.data[i])
+	// 	//let dataHex = bytesToHex(input.data);
+	// 	//console.log(decodePrefix + 'des >>>', type, dataHex);
+	// }
+	
 	//	decodePrefix +=  "   ";
 
 	let res;
@@ -382,26 +388,13 @@ function decode(input, type) {
 					//console.log(input.data)
 					//input.data = input.data.slice(2);
 					decode(input, 'Compact<u32>');
-
-
-					let version = leToNumber(input.data.slice(0, 4));
-					version = new BlockNumber(version);
-					input.data = input.data.slice(4);
-
-					let parent = new Hash(input.data.slice(0, 32));
-					input.data = input.data.slice(32);
-
-					let merkle = new Hash(input.data.slice(0, 32));
-					input.data = input.data.slice(32);
-
-					let time = leToNumber(input.data.slice(0, 4));
-					input.data = input.data.slice(4);
-
-					let bits = leToNumber(input.data.slice(0, 4));
-					input.data = input.data.slice(4);
-
-					let nonce = leToNumber(input.data.slice(0, 4));
-					input.data = input.data.slice(4);
+					let version=decode(input,'u32');
+					let parent=decode(input,'H256');
+					let merkle=decode(input,'H256');
+					let time=decode(input,'u32');
+					let bits=decode(input,'u32');
+					let nonce=decode(input,'u32');
+					
 
 					res = new BtcBlockHeader(version, parent, merkle, time, bits, nonce);
 
@@ -409,6 +402,7 @@ function decode(input, type) {
 				}
 			case 'keys::Address':
 				{
+
 					let kind = leToNumber(input.data.slice(0, 1));
 					kind = new BlockNumber(kind);
 					input.data = input.data.slice(1);
