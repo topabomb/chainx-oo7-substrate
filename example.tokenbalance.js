@@ -13,7 +13,7 @@ const {
     VecU8,
     OrderPair,
     OrderType,
-    Symbol,
+    TokenSymbol,
     TokenBalance
 } = require('./src/types')
 global.localStorage = {};
@@ -35,8 +35,8 @@ window = global;
 
 //设置节点
 //substrate.setNodeUri(['ws://127.0.0.1:8082']);
-substrate.setNodeUri(['ws://192.168.1.237:9067']);
-//substrate.setNodeUri(['ws://192.168.1.25:9067']);
+//substrate.setNodeUri(['ws://192.168.1.237:8084']);
+substrate.setNodeUri(['ws://192.168.1.25:9067']);
 
 var alice_seed = 'Alice                           ';
 var alice_account_58 = '5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ';
@@ -50,7 +50,7 @@ console.log('public#' + alice_account_public);
 console.log('address#' + alice_account_address);
 //秘钥管理
 var secretstore = substrate.secretStore();
-//注意! 
+//注意!
 //submitFromSeed只是为了适应ychainx的测试链配置，正式环境应该使用 submit方法
 secretstore.submitFromSeed(alice_seed, 'alice');
 var alice = secretstore.find('alice');
@@ -81,7 +81,7 @@ substrate.runtimeUp.then(() => {
         }
 
     })
-    //tokenbalances.totalFreeToken(symbol)
+
     //获取账户的token列表
     tokenbalances.tokenListOf(alice.account).tie(data => {
 
@@ -107,7 +107,7 @@ substrate.runtimeUp.then(() => {
 
 
     // // token 转账
-    var symbol = new Symbol(stringToBytes('x-btc'));
+    var symbol = new TokenSymbol(stringToBytes('btc'));
     substrate.calls.tokenbalances.transferToken(alan.account, symbol, 10).then(transfer_token => {
 
         substrate.post({
@@ -119,34 +119,16 @@ substrate.runtimeUp.then(() => {
         })
     })
 
-    // 申请提现 
-    
+    // 申请提现
+
     substrate.calls.financialrecords.withdraw( symbol, 100).then(withdraw => {
 
         substrate.post({
             sender: alan.account,
             call: withdraw
         }).tie((data) => {
-            console.log('withdraw='+ JSON.stringify( data) )
+            console.log('withdraw='+ data )
 
         })
     })
-
-    substrate.runtime.financialrecords.recordsLenOf(alan.account).then(RecordsLenOf=>{
-        console.log('RecordsLenOf#'+RecordsLenOf)
-        for( var i=RecordsLenOf-1;i>=0;i--){
-            substrate.runtime.financialrecords.recordsOf([alan.account,i]).then(record=>{
-                console.log(record)
-            })
-            
-        }
-    })
-
-    substrate.runtime.tokenbalances.totalFreeToken(symbol).then(total=>{
-        console.log('#TotalFreeToken '+total);
-    })
-    substrate.runtime.tokenbalances.totalReservedToken(symbol).then(TotalReservedToken=>{
-        console.log('#TotalReservedToken '+TotalReservedToken);
-    })
-    
 })

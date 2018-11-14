@@ -21,7 +21,7 @@ const {
 	BtcUTXO,
 	OrderPair,
 	OrderType,
-	Symbol,
+	TokenSymbol,
 	Token,
 	OrderT,
 	OrderStatus,
@@ -160,7 +160,7 @@ function decode(input, type) {
 	// 	//let dataHex = bytesToHex(input.data);
 	// 	//console.log(decodePrefix + 'des >>>', type, dataHex);
 	// }
-	
+
 	//	decodePrefix +=  "   ";
 
 	let res;
@@ -232,6 +232,14 @@ function decode(input, type) {
 					break;
 				}
 			case 'TokenBalance':
+				{
+					console.log(input.data)
+					res = leToNumber(input.data.slice(0, 16));
+					console.log(res)
+					input.data = input.data.slice(16);
+					res = new Balance(res);
+					break;
+				}
 			case 'Amount':
 			case 'Price':
 			case 'Balance':
@@ -395,7 +403,7 @@ function decode(input, type) {
 					let time=decode(input,'u32');
 					let bits=decode(input,'u32');
 					let nonce=decode(input,'u32');
-					
+
 
 					res = new BtcBlockHeader(version, parent, merkle, time, bits, nonce);
 
