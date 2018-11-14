@@ -26,12 +26,16 @@ const {
 const {
     BigNumber
 } = require('bignumber.js');
+const bitcoin = require("bitcoinjs-lib")
+const bscript = bitcoin.script
+const OPS = require('bitcoin-ops')
+const OP_INT_BASE = OPS.OP_RESERVED // OP_1 - 1
 
 window = global;
 
 //设置节点
 //substrate.setNodeUri(['ws://127.0.0.1:8082']);
-substrate.setNodeUri(['ws://192.168.1.237:9067']);
+substrate.setNodeUri(['ws://192.168.1.244:9067']);
 //substrate.setNodeUri(['ws://192.168.1.25:9067']);
 //substrate.setNodeUri(['ws://47.105.73.172:8082']);
 
@@ -73,13 +77,13 @@ substrate.runtimeUp.then(() => {
 
     let bridgeofbtc = substrate.runtime.bridge_btc;
 
-    bridgeofbtc.bestIndex.tie(data => {
+     bridgeofbtc.bestIndex.tie(data => {
         console.log('#block number:' + data.number);
         console.log('#block hash:0x' + data.hash.toRightHex());
 
         let number = parseInt(data.number)
 
-        bridgeofbtc.hashsForNumber(number).tie(hashlist => {
+        bridgeofbtc.hashsForNumber(number).then(hashlist => {
             //第一个
             var hash = hashlist[0];
 
@@ -92,6 +96,7 @@ substrate.runtimeUp.then(() => {
             })
 
             bridgeofbtc.blockHeaderFor(hash).then(data => {
+                console.log(data)
                 let header = data[0]
                 let account = data[1]
                 console.log('#BlockHeaderFor:AccountId->' + account.toHex())
@@ -102,6 +107,7 @@ substrate.runtimeUp.then(() => {
                 console.log('#BlockHeaderFor:' + hash.toRightHex() + '->bits:' + header.bits)
                 console.log('#BlockHeaderFor:' + hash.toRightHex() + '->nonce:' + header.nonce)
                 let blocknumber = data[2]
+                console.log('#BlockHeaderFor:account->'+account.toHex())
                 console.log('#BlockHeaderFor:' + hash.toRightHex() + '->blocknumber:' + blocknumber)
 
             })
@@ -123,7 +129,7 @@ substrate.runtimeUp.then(() => {
 
 
         })
-    })
+     })
 
     //getTxByNum(918004)
 
@@ -148,21 +154,47 @@ substrate.runtimeUp.then(() => {
         })
     })
 
-    bridgeofbtc.accountsMaxIndex.tie(maxindex => {
-        console.log('AccountsMaxIndex#' + maxindex)
-        for(var i=1;i<20;i++){
+    //console.log(bridgeofbtc)
+
+    bridgeofbtc.regInfoMaxIndex.then(maxindex => {
+        //console.log('regInfoMaxIndex#' + maxindex)
+        for(var i=1;i<2;i++){
             (function(index){
-                bridgeofbtc.accountsSet(index).tie(account => {
+                bridgeofbtc.regInfoSet(index).tie(account => {
+                    //console.log(account)
                     console.log('hash#' + '=>' + bytesToHex(account[0]))
                     console.log('btcAddress#' + '=>' + toBtcAddress(account[1].hash.toHex(), 'testnet'))
                     console.log('AccountId#' + '=>' + (account[2].toHex()))
                     console.log('BlockNumber#' + '=>' + (account[3]))
-                    console.log('TxType#' + '=>' + account[4].toName())
+                    console.log('channel#' + '=>' + account[4])
+                    console.log('TxType#' + '=>' + account[5].toName())
                 })
             })(maxindex - i)
         }
        
     })
 
+    bridgeofbtc.redeemScript.then(RedeemScript=>{
+        console.log('#RedeemScript :'+RedeemScript)
+        //var hex='52210257aff1270e3163aaae9d972b3d09a2385e0d4877501dbeca3ee045f8de00d21c2103fd58c689594b87bbe20a9a00091d074dc0d9f49a988a7ad4c2575adeda1b507c2102bb2a5aa53ba7c0d77bdd86bb9553f77dd0971d3a6bb6ad609787aa76eb17b6b653ae';
+        //var asm=bscript.toASM(Buffer.from(hex, 'hex'))
+        //console.log(bscript.fromASM(asm))
+        var data=bscript.decompile(Buffer.from(RedeemScript, 'hex'))
+        var m = data[0] - OP_INT_BASE
+        var n = data[data.length - 2] - OP_INT_BASE
+        var pubkeys = data.slice(1, -2)
+        console.log('MultilSig:'+m+'/'+n)
+        for( var i=0;i<pubkeys.length;i++){
+            console.log('pubkey['+i+']='+bytesToHex(pubkeys[i]))
+        }
+    })
 
+    bridgeofbtc.receiveAddress.then(ReceiveAddress=>{
+        console.log('#ReceiveAddress '+toBtcAddress(ReceiveAddress.hash.toHex(), 'testnet'))
+    })
+
+   
 });
+
+
+
