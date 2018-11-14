@@ -32,7 +32,8 @@ const {
 	MultiNodeIndexT,
 	MatchNodeT,
 	Bid,
-	BidDetailT
+	BidDetailT,
+	FinancialRecord
 } = require('./types')
 const {
 	toLE,
@@ -552,6 +553,7 @@ function decode(input, type) {
 				}
 			case 'Bid':
 				{
+					
 					res = new Bid(new Map([
 						['nodeid', decode(input, 'u128')],
 						['price', decode(input, 'Price')],
@@ -578,11 +580,22 @@ function decode(input, type) {
 				{
 					res = new MatchNodeT(new Map([
 						['data', decode(input, 'Bid')],
-						['prev', decode(input, 'u128')],
-						['next', decode(input, 'u128')],
+						['prev', decode(input, 'Option<u128>')],
+						['next', decode(input, 'Option<u128>')],
 					]))
 					break;
 				}
+			case 'Record<Symbol, TokenBalance, BlockNumber>':
+			{
+				
+				res=new FinancialRecord(new Map([
+					['action', decode(input, 'u8')],
+					['symbol', decode(input, 'Symbol')],
+					['balance', decode(input, 'Balance')],
+					['init_blocknum', decode(input, 'BlockNumber')],
+				]))
+				break;
+			}
 			default:
 				{
 					let v = type.match(/^Vec<(.*)>$/);
@@ -812,7 +825,7 @@ function encode(value, type = null) {
 	}
 
 
-	throw `Value cannot be encoded as type: ${value}, ${type}`
+	throw `Value cannot be encoded as type: ${value},${type}`
 }
 
 module.exports = {
