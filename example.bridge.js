@@ -35,7 +35,7 @@ window = global;
 
 //设置节点
 //substrate.setNodeUri(['ws://127.0.0.1:8082']);
-substrate.setNodeUri(['ws://192.168.1.244:9067']);
+substrate.setNodeUri(['ws://192.168.1.25:9067']);
 //substrate.setNodeUri(['ws://192.168.1.25:9067']);
 //substrate.setNodeUri(['ws://47.105.73.172:8082']);
 
@@ -76,6 +76,27 @@ substrate.runtimeUp.then(() => {
     }
 
     let bridgeofbtc = substrate.runtime.bridge_btc;
+
+    bridgeofbtc.redeemScript.then(RedeemScript=>{
+        console.log('#RedeemScript :'+ RedeemScript)
+        //var hex='52210257aff1270e3163aaae9d972b3d09a2385e0d4877501dbeca3ee045f8de00d21c2103fd58c689594b87bbe20a9a00091d074dc0d9f49a988a7ad4c2575adeda1b507c2102bb2a5aa53ba7c0d77bdd86bb9553f77dd0971d3a6bb6ad609787aa76eb17b6b653ae';
+        //var asm=bscript.toASM(Buffer.from(hex, 'hex'))
+        //console.log(bscript.fromASM(asm))
+        var data=bscript.decompile(Buffer.from(RedeemScript.toString(), 'hex'))
+        console.log(data)
+
+        var m = data[0] - OP_INT_BASE
+        var n = data[data.length - 2] - OP_INT_BASE
+        var pubkeys = data.slice(1, -2)
+        console.log('MultilSig:'+m+'/'+n)
+        for( var i=0;i<pubkeys.length;i++){
+            console.log('pubkey['+i+']='+bytesToHex(pubkeys[i]))
+        }
+    })
+
+    bridgeofbtc.receiveAddress.then(ReceiveAddress=>{
+        console.log('#ReceiveAddress '+toBtcAddress(ReceiveAddress.hash.toHex(), 'testnet'))
+    })
 
      bridgeofbtc.bestIndex.tie(data => {
         console.log('#block number:' + data.number);
@@ -174,27 +195,11 @@ substrate.runtimeUp.then(() => {
        
     })
 
-    bridgeofbtc.redeemScript.then(RedeemScript=>{
-        console.log('#RedeemScript :'+RedeemScript)
-        //var hex='52210257aff1270e3163aaae9d972b3d09a2385e0d4877501dbeca3ee045f8de00d21c2103fd58c689594b87bbe20a9a00091d074dc0d9f49a988a7ad4c2575adeda1b507c2102bb2a5aa53ba7c0d77bdd86bb9553f77dd0971d3a6bb6ad609787aa76eb17b6b653ae';
-        //var asm=bscript.toASM(Buffer.from(hex, 'hex'))
-        //console.log(bscript.fromASM(asm))
-        var data=bscript.decompile(Buffer.from(RedeemScript, 'hex'))
-        var m = data[0] - OP_INT_BASE
-        var n = data[data.length - 2] - OP_INT_BASE
-        var pubkeys = data.slice(1, -2)
-        console.log('MultilSig:'+m+'/'+n)
-        for( var i=0;i<pubkeys.length;i++){
-            console.log('pubkey['+i+']='+bytesToHex(pubkeys[i]))
-        }
-    })
-
-    bridgeofbtc.receiveAddress.then(ReceiveAddress=>{
-        console.log('#ReceiveAddress '+toBtcAddress(ReceiveAddress.hash.toHex(), 'testnet'))
-    })
-
    
 });
+
+
+
 
 
 
