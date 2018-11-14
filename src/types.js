@@ -58,7 +58,7 @@ class VecU8 extends Uint8Array {
 	toString() {
 		return Buffer.from(this).toString('utf8')
 	}
-	toBuffer() {
+	toStringBuffer() {
 		return Buffer.from(Buffer.from(this).toString('utf8'), 'hex')
 	}
 }
