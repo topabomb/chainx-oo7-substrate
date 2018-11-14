@@ -58,6 +58,9 @@ class VecU8 extends Uint8Array {
 	toString() {
 		return Buffer.from(this).toString('utf8')
 	}
+	toBuffer() {
+		return Buffer.from(Buffer.from(this).toString('utf8'), 'hex')
+	}
 }
 
 class AccountId extends Uint8Array {
@@ -108,6 +111,10 @@ class BlockNumber extends Number {
 			_type: 'BlockNumber',
 			data: this + 0
 		}
+	}
+
+	toNumber() {
+		return this.valueOf()
 	}
 
 	toPrimitive() {
