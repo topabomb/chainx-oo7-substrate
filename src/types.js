@@ -471,7 +471,7 @@ class OrderStatus {
 
 }
 
-class Symbol extends VecU8 { }
+class TokenSymbol extends VecU8 { }
 class Channel extends VecU8{}
 
 function reviver(key, bland) {
@@ -554,7 +554,7 @@ module.exports = {
 	OrderType,
 	Amount,
 	Price,
-	Symbol,
+	TokenSymbol,
 	Token,
 	TokenBalance,
 	OrderT,

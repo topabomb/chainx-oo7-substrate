@@ -13,7 +13,7 @@ const {
     VecU8,
     OrderPair,
     OrderType,
-    Symbol,
+    TokenSymbol,
     TokenBalance
 } = require('./src/types')
 global.localStorage = {};
@@ -50,7 +50,7 @@ console.log('public#' + alice_account_public);
 console.log('address#' + alice_account_address);
 //秘钥管理
 var secretstore = substrate.secretStore();
-//注意! 
+//注意!
 //submitFromSeed只是为了适应ychainx的测试链配置，正式环境应该使用 submit方法
 secretstore.submitFromSeed(alice_seed, 'alice');
 var alice = secretstore.find('alice');
@@ -107,7 +107,7 @@ substrate.runtimeUp.then(() => {
 
 
     // // token 转账
-    var symbol = new Symbol(stringToBytes('btc'));
+    var symbol = new TokenSymbol(stringToBytes('btc'));
     substrate.calls.tokenbalances.transferToken(alan.account, symbol, 10).then(transfer_token => {
 
         substrate.post({
@@ -119,8 +119,8 @@ substrate.runtimeUp.then(() => {
         })
     })
 
-    // 申请提现 
-    
+    // 申请提现
+
     substrate.calls.financialrecords.withdraw( symbol, 100).then(withdraw => {
 
         substrate.post({

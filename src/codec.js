@@ -21,7 +21,7 @@ const {
 	BtcUTXO,
 	OrderPair,
 	OrderType,
-	Symbol,
+	TokenSymbol,
 	Token,
 	OrderT,
 	OrderStatus,
