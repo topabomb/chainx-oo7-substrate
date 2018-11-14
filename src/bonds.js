@@ -11,11 +11,12 @@ const { StorageBond } = require('./storageBond')
 let chain = (() => {
 	let head = new SubscriptionBond('chain_newHead').subscriptable()
 	let height = head.map(h => new BlockNumber(h.number))
+	let bestHeight = () => head.map(h => new BlockNumber(h.number))
 	let header = hashBond => new TransformBond(hash => nodeService().request('chain_getHeader', [hash]), [hashBond]).subscriptable()
 	let hash = numberBond => new TransformBond(number => nodeService().request('chain_getBlockHash', [number]), [numberBond])
 	let block =hashBond => new TransformBond(hash => nodeService().request('chain_getBlock', [hash]), [hashBond]).subscriptable()
-	
-	return { head, height, header, hash ,block}
+
+	return { head, height, bestHeight, header, hash ,block}
 })()
 
 let system = (() => {
@@ -36,9 +37,9 @@ let runtime = { core: (() => {
 				}
 			)
 		), 2)
-	
+
 	let heappages = new SubscriptionBond('state_storage', [['0x' + bytesToHex(stringToBytes(':heappages'))]], r => decode(hexToBytes(r.changes[0][1]), 'u64'))
-	
+
 	let storage=storageBond=>new TransformBond((datakey)=> nodeService().request('state_getStorage', [datakey]).then(hexToBytes),[storageBond],[])
 	let sub_storage=(datakey)=>new SubscriptionBond('state_storage', [[datakey]], r => hexToBytes(r.changes[0][1])).subscriptable()
 	let code = new SubscriptionBond('state_storage', [['0x' + bytesToHex(stringToBytes(':code'))]], r => hexToBytes(r.changes[0][1]))
@@ -47,7 +48,7 @@ let runtime = { core: (() => {
 	let metaData = new TransformBond(() => nodeService().request('state_getMetadata', []).then(hexToBytes), [], [chain.head])
 
 	return { authorityCount, authorities, code, codeHash, codeSize,heappages ,storage,sub_storage,metaData}
-	
+
 })() }
 
 let calls = {}
@@ -126,10 +127,10 @@ function initialiseFromMetadata (m) {
 }
 
 function initRuntime (callback = null) {
-	
+
 	if (onRuntimeInit instanceof Array) {
 		onRuntimeInit.push(callback)
-		
+
 		if (onRuntimeInit.length === 1) {
 			nodeService().request('state_getMetadata',[])
 				.then(blob => {
