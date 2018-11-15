@@ -533,6 +533,7 @@ class MatchNodeT extends Struct { }
 class Bid extends Struct { }
 class BidDetailT extends Struct { }
 class FinancialRecord extends Struct { }
+class NominationsT extends Struct { }
 
 module.exports = {
 	VecU8,
@@ -571,5 +572,6 @@ module.exports = {
 	Bid,
 	BidDetailT,
 	Channel,
-	FinancialRecord
+	FinancialRecord,
+	NominationsT
 }

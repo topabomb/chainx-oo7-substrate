@@ -33,7 +33,8 @@ const {
 	MatchNodeT,
 	Bid,
 	BidDetailT,
-	FinancialRecord
+	FinancialRecord,
+	NominationsT
 } = require('./types')
 const {
 	toLE,
@@ -561,7 +562,7 @@ function decode(input, type) {
 				}
 			case 'Bid':
 				{
-					
+
 					res = new Bid(new Map([
 						['nodeid', decode(input, 'u128')],
 						['price', decode(input, 'Price')],
@@ -595,12 +596,20 @@ function decode(input, type) {
 				}
 			case 'Record<Symbol, TokenBalance, BlockNumber>':
 			{
-				
 				res=new FinancialRecord(new Map([
 					['action', decode(input, 'u8')],
 					['symbol', decode(input, 'Symbol')],
 					['balance', decode(input, 'Balance')],
 					['init_blocknum', decode(input, 'BlockNumber')],
+				]))
+				break;
+			}
+			case 'Nominations<T>':
+			{
+				res=new NominationsT(new Map([
+					['accountId', decode(input, 'AccountId')],
+					['balance', decode(input, 'Balance')],
+					['blockNumber', decode(input, 'BlockNumber')],
 				]))
 				break;
 			}
