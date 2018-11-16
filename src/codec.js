@@ -612,21 +612,12 @@ function decode(input, type) {
 				]))
 				break;
 			}
-			// case 'Nominations<T>':
-			// {
-			// 	res=new NominationsT(new Map([
-			// 		['accountId', decode(input, 'AccountId')],
-			// 		['balance', decode(input, 'Balance')],
-			// 		['blockNumber', decode(input, 'BlockNumber')],
-			// 	]))
-			// 	break;
-			// }
 			default:
 				{
 					let m= type.match(/CodecBTreeMap<(.*)>/);
 					if( m ) {
 						let size = decode(input, 'Compact<u32>');
-						res = [...new Array(size)].map(() => decode(input, v[1]));
+						res = [...new Array(size)].map(() => decode(input, m[1]));
 						break;
 					}
 					let v = type.match(/^Vec<(.*)>$/);
@@ -832,7 +823,7 @@ function encode(value, type = null) {
 	}
 
 	if (type.trim() == 'OrderPair' && typeof value == 'object') {
-		
+
 		return new Uint8Array([...encode(value.first.length, 'Compact<u32>'), ...stringToBytes(value.first), ...encode(value.second.length, 'Compact<u32>'), ...stringToBytes(value.second), ...toLE(value.precision, 4)]);
 	}
 	if (type.trim() == 'Token' && typeof value == 'object') {
