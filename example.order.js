@@ -1,4 +1,4 @@
-var substrate = require('oo7-substrate');
+var substrate = require('./');
 const {
     bytesToHex,
     toLE,
@@ -47,7 +47,7 @@ console.log('public#' + alice_account_public);
 console.log('address#' + alice_account_address);
 //秘钥管理
 var secretstore = substrate.secretStore();
-//注意! 
+//注意!
 //submitFromSeed只是为了适应ychainx的测试链配置，正式环境应该使用 submit方法
 secretstore.submitFromSeed(alice_seed, 'alice');
 var alice = secretstore.find('alice');

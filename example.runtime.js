@@ -1,4 +1,4 @@
-var substrate=require('oo7-substrate');
+var substrate=require('./');
 const { bytesToHex } = require('./src/utils')
 const {xxhash}=require('@polkadot/util-crypto/xxhash');
 const { storageKey, StorageBond } = require('./src/storageBond')
@@ -57,12 +57,12 @@ var runtime=substrate.runtime;
             console.log(d);
         })
 
-        //  获取storagekey 
+        //  获取storagekey
         var storage_hash=storageKey('Balances FreeBalance',alice_account_u8);
         console.log('storage_hash#'+storage_hash);//0xce3f3d8f09e3411403f5ca59d042a40e
 
         await runtime.core.sub_storage(storage_hash).then((data)=>{
             console.log('balance#'+decode(data, 'Balance'));
         });
-        
+
 })()

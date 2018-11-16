@@ -612,6 +612,15 @@ function decode(input, type) {
 				]))
 				break;
 			}
+			// case 'Nominations<T>':
+			// {
+			// 	res=new NominationsT(new Map([
+			// 		['accountId', decode(input, 'AccountId')],
+			// 		['balance', decode(input, 'Balance')],
+			// 		['blockNumber', decode(input, 'BlockNumber')],
+			// 	]))
+			// 	break;
+			// }
 			default:
 				{
 					let m= type.match(/CodecBTreeMap<(.*)>/);

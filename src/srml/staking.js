@@ -36,25 +36,25 @@ function augment (runtime, chain) {
 	staking.currentStakingBalance = who => Bond
 		.all([balances.totalBalance(who), staking.currentNominatedBalance(who)])
 		.map(([f, r]) => new Balance(f + r));
-		
+
 	staking.eraLength = new TransformBond(
 		(a, b) => a * b,
 		[
 			staking.sessionsPerEra,
 			session.sessionLength
 		])
-	
+
 	staking.validators = session.validators
-		.map(v => v.map(who => ({
-			who,
-			ownBalance: balances.totalBalance(who),
-			otherBalance: staking.currentNominatedBalance(who),
-			nominators: staking.currentNominatorsFor(who)
-		})), 2)
-		.map(v => v
-			.map(i => Object.assign({balance: i.ownBalance.plus(i.otherBalance)}, i))
-			.sort((a, b) => b.balance - a.balance)
-		)
+	// 	.map(v => v.map(who => ({
+	// 		who,
+	// 		ownBalance: balances.totalBalance(who),
+	// 		otherBalance: staking.currentNominatedBalance(who),
+	// 		nominators: staking.currentNominatorsFor(who)
+	// 	})), 2)
+	// 	.map(v => v
+	// 		.map(i => Object.assign({balance: i.ownBalance.plus(i.otherBalance)}, i))
+	// 		.sort((a, b) => b.balance - a.balance)
+	// 	)
 
 	staking.nextThreeUp = staking.intentions.map(
 			l => ([session.validators, l.map(who => ({
@@ -91,7 +91,7 @@ function augment (runtime, chain) {
 		])
 
 	staking.eraBlocksRemaining = new TransformBond(
-		(sl, sr, br) => br + sl * sr, 
+		(sl, sr, br) => br + sl * sr,
 		[
 			session.sessionLength,
 			staking.eraSessionsRemaining,
@@ -103,13 +103,13 @@ function augment (runtime, chain) {
 			let ss58 = ss58Encode(id);
 			return i.findIndex(a => ss58Encode(a) === ss58);
 		}, [runtime.staking.intentions, id])
-	
+
 	staking.bondageOf = id =>
 		new TransformBond(
 			(b, h) => h >= b ? null : (b - h),
 			[runtime.staking.bondage(id), chain.height]
 		)
-	
+
 		staking.nominationIndex = (val) =>
 		new TransformBond((i, id) => {
 			let ss58 = ss58Encode(id);

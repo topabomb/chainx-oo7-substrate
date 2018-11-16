@@ -1,4 +1,4 @@
-var substrate = require('oo7-substrate');
+var substrate = require('./');
 const {
     bytesToHex,
     toLE,

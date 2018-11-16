@@ -1,4 +1,4 @@
-var substrate = require('oo7-substrate');
+var substrate = require('./');
 window = global;
 
 //设置节点
@@ -10,11 +10,11 @@ var chain = substrate.chain;
 substrate.runtimeUp.then(() => {
     //订阅新区块头
     chain.head.tie(((header) => {
-       
+
         substrate.runtime.system.events.then(e=>{
             console.log(e)
         })
-       
+
     }));
 
 })
