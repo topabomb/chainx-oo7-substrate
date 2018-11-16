@@ -1,4 +1,4 @@
-var substrate = require('oo7-substrate');
+var substrate = require('./');
 window = global;
 
 //设置节点
@@ -23,7 +23,7 @@ substrate.runtimeUp.then(() => {
     //订阅新区块头
     chain.head.tie(((header) => {
         console.log('head#');
-        
+
         //通过块哈希获取块头
         chain.header(header.parentHash).tie((header) => {
             console.log('parent->header#');
