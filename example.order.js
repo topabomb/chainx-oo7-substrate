@@ -32,8 +32,8 @@ const {
 window = global;
 
 //设置节点
-substrate.setNodeUri(['ws://127.0.0.1:8082']);
-//substrate.setNodeUri(['ws://192.168.1.237:8084']);
+//substrate.setNodeUri(['ws://127.0.0.1:8082']);
+substrate.setNodeUri(['ws://192.168.1.237:9067']);
 
 var alice_seed = 'Alice';
 var alice_account_58 = '5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ';
@@ -122,7 +122,7 @@ substrate.runtimeUp.then(() => {
 
     let buy = new OrderType('Buy');
     //挂买单
-    substrate.calls.pendingorders.putOrder(pair, buy, 10, 10,"imtoken").then(putorder => {
+    substrate.calls.pendingorders.putOrder(pair, buy, 10, 10/*,"imtoken"*/).then(putorder => {
 
         substrate.post({
             sender: alice.account,
@@ -132,34 +132,36 @@ substrate.runtimeUp.then(() => {
 
         })
     })
-    print_orderlist(alice.account, pair)
-
-    // //挂卖掉
-    let sell = new OrderType('Sell');
-    substrate.calls.pendingorders.putOrder(pair, sell, 20, 10,"imtoken").then(sell_order => {
-
-        substrate.post({
-            sender: bob.account,
-            call: sell_order
-        }).tie((data) => {
-            console.log(data)
-
-        })
-    })
+    //print_orderlist(alice.account, pair)
     print_orderlist(bob.account, pair)
-    //取消挂单
-    substrate.calls.pendingorders.cancelOrder(pair, 2).then(putorder => {
-        substrate.post({
-            sender: alice.account,
-            call: putorder
-        }).tie((data) => {
-            console.log(data)
+    // // //挂卖掉
+     let sell = new OrderType('Sell');
+    // substrate.calls.pendingorders.putOrder(pair, sell, 20, 10,"imtoken").then(sell_order => {
 
-        })
-    })
 
-    //成交历史
-    print_filllist(pair);
+
+    //     substrate.post({
+    //         sender: bob.account,
+    //         call: sell_order
+    //     }).tie((data) => {
+    //         console.log(data)
+
+    //     })
+    // })
+    // print_orderlist(bob.account, pair)
+    // //取消挂单
+    // substrate.calls.pendingorders.cancelOrder(pair, 2).then(putorder => {
+    //     substrate.post({
+    //         sender: alice.account,
+    //         call: putorder
+    //     }).tie((data) => {
+    //         console.log(data)
+
+    //     })
+    // })
+
+    // //成交历史
+    // print_filllist(pair);
 
 
     function getNode(nodeid) {
@@ -184,7 +186,7 @@ substrate.runtimeUp.then(() => {
             console.log('#node->next:' + node.get('next'))
 
             if (node.get('next') > 0)
-                getNode(node.next)
+                getNode(node.get('next'))
 
         })
     }
@@ -199,6 +201,8 @@ substrate.runtimeUp.then(() => {
     }
 
     //卖单盘口
-    getBidList(pair, sell);
+   // getBidList(pair, sell);
+
+    getBidList(pair, buy);
 
 })

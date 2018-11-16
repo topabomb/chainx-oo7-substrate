@@ -27,8 +27,8 @@ const {
 window = global;
 
 //设置节点
-substrate.setNodeUri(['ws://127.0.0.1:8082']);
-//substrate.setNodeUri(['ws://192.168.1.237:8084']);
+//substrate.setNodeUri(['ws://127.0.0.1:8082']);
+substrate.setNodeUri(['ws://192.168.1.237:8084']);
 //substrate.setNodeUri(['ws://192.168.1.25:808']);
 //substrate.setNodeUri(['ws://47.105.73.172:8082']);
 
@@ -73,100 +73,105 @@ substrate.runtimeUp.then(() => {
     substrate.runtime.staking.currentEra.tie((data) => {
         console.log('CurrentEra=' + data);
     })
+    console.log(substrate.calls)
+    console.log(substrate.runtime)
 
-    substrate.runtime.balances.transferFee.tie((data) => {
-        console.log('transferFee#' + data);
-    });
+    // substrate.runtime.system.accountNonce(alice_account_public).then(d=>{
+    //     console.log('nonce='+d)
+    // })
+    // substrate.runtime.balances.transferFee.tie((data) => {
+    //     console.log('transferFee#' + data);
+    // });
 
-    substrate.runtime.balances.freeBalance(alice_account_public).tie((alice) => {
-        console.log('alice freeBalance#' + alice);
-    });
+    // substrate.runtime.balances.freeBalance(alice_account_public).tie((alice) => {
+    //     console.log('alice freeBalance#' + alice);
+    // });
 
-    substrate.runtime.balances.totalBalance(alice_account_public).then((alice) => {
-        console.log('alice totalBalance#' + alice);
-    });
+    // substrate.runtime.balances.totalBalance(alice_account_public).then((alice) => {
+    //     console.log('alice totalBalance#' + alice);
+    // });
 
-    substrate.runtime.staking.validators.then((data) => {
-        for (var i = 0; i < data.length; i++) {
-            console.log('[' + i + ']=>0x' + bytesToHex(data[i].who));
-        }
+    // substrate.runtime.staking.validators.then((data) => {
+    //     for (var i = 0; i < data.length; i++) {
+    //         console.log('[' + i + ']=>0x' + bytesToHex(data[i].who));
+    //     }
 
-    });
+    // });
 
-    //转账前余额
-    substrate.runtime.balances.freeBalance(alice_account_public).then((alice) => {
-        console.log('before------alice freeBalance#' + alice);
-    });
-    substrate.runtime.balances.freeBalance(alan.account).then((alan) => {
-        console.log('before------alan freeBalance#' + alan);
-    });
+    // //转账前余额
+    // substrate.runtime.balances.freeBalance(alice_account_public).then((alice) => {
+    //     console.log('before------alice freeBalance#' + alice);
+    // });
+    // substrate.runtime.balances.freeBalance(alan.account).then((alan) => {
+    //     console.log('before------alan freeBalance#' + alan);
+    // });
 
-    //构造交易参数
-    substrate.calls.balances.transfer(alan.account, 1000).tie((transfer_to_alan) => {
+    // //构造交易参数
+    // substrate.calls.balances.transfer(alan.account, 1000).tie((transfer_to_alan) => {
 
-        substrate.calls.staking.stake(stringToBytes('name'), stringToBytes('url')).tie(data => {
-            console.log('stake=' + data.toString());
-        })
-        substrate.runtime.staking.nameOfIntention('5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ').tie(data => {
-            console.log('data=' + data)
-        })
+    //     substrate.calls.staking.stake(stringToBytes('name'), stringToBytes('url')).tie(data => {
+    //         console.log('stake=' + data.toString());
+    //     })
+    //     substrate.runtime.staking.nameOfIntention('5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ').tie(data => {
+    //         console.log('data=' + data)
+    //     })
 
-        console.log(substrate.runtime.staking.nominationTo)
+    //     console.log(substrate.runtime.staking.nominationTo)
 
-        substrate.runtime.staking.nominationTo(['5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ', '5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ']).tie(data => {
-            console.log('nominationTo=' + data)
-        })
+    //     substrate.runtime.staking.nominationTo(['5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ', '5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaDtZ']).tie(data => {
+    //         console.log('nominationTo=' + data)
+    //     })
 
-        substrate.runtime.balances.totalBalance(alice_account_public).then((alice) => {
-            console.log('totalBalance=' + alice)
-        })
+    //     substrate.runtime.balances.totalBalance(alice_account_public).then((alice) => {
+    //         console.log('totalBalance=' + alice)
+    //     })
 
-        // substrate.runtime.system.account_nonce(alice_account_public).tie(data=>{
-        //     console.log('nonce='+data);
-        // })
-        //发送交易
-        substrate.post({
-            sender: alice.account,
-            call: transfer_to_alan
-        }).tie((data) => {
-            console.log(data);
+    //     // substrate.runtime.system.account_nonce(alice_account_public).tie(data=>{
+    //     //     console.log('nonce='+data);
+    //     // })
+    //     //发送交易
+    //     substrate.post({
+    //         sender: alice.account,
+    //         call: transfer_to_alan
+    //     }).tie((data) => {
+    //         console.log(data);
 
-            //交易被确认
-            if (data.finalised) {
-                substrate.runtime.balances.freeBalance(alice_account_public).then((alice) => {
-                    console.log('after-------alice freeBalance#' + alice);
-                });
-                substrate.runtime.balances.freeBalance(alan.account).then((alan) => {
-                    console.log('after-------alan freeBalance#' + alan);
-                });
+    //         //交易被确认
+    //         if (data.finalised) {
+    //             substrate.runtime.balances.freeBalance(alice_account_public).then((alice) => {
+    //                 console.log('after-------alice freeBalance#' + alice);
+    //             });
+    //             substrate.runtime.balances.freeBalance(alan.account).then((alan) => {
+    //                 console.log('after-------alan freeBalance#' + alan);
+    //             });
 
-                //向jack转账
-                //构造交易参数
-                substrate.calls.balances.transfer(jack.account, 1000).tie((transfer_to_jack) => {
-                    //发送交易
-                    substrate.post({
-                        sender: alice.account,
-                        call: transfer_to_jack
-                    }).tie((data) => {
-                        console.log(data);
+    //             //向jack转账
+    //             //构造交易参数
+    //             substrate.calls.balances.transfer(jack.account, 1000).tie((transfer_to_jack) => {
+    //                 //发送交易
+    //                 substrate.post({
+    //                     sender: alice.account,
+    //                     call: transfer_to_jack
+    //                 }).tie((data) => {
+    //                     console.log(data);
 
-                        //交易被确认
-                        if (data.finalised) {
-                            substrate.runtime.balances.freeBalance(alice_account_public).then((alice) => {
-                                console.log('after-------alice freeBalance#' + alice);
-                            });
-                            substrate.runtime.balances.freeBalance(jack.account).then((jack) => {
-                                console.log('after-------jack freeBalance#' + jack);
-                            });
-                        }
+    //                     //交易被确认
+    //                     if (data.finalised) {
+    //                         substrate.runtime.balances.freeBalance(alice_account_public).then((alice) => {
+    //                             console.log('after-------alice freeBalance#' + alice);
+    //                         });
+    //                         substrate.runtime.balances.freeBalance(jack.account).then((jack) => {
+    //                             console.log('after-------jack freeBalance#' + jack);
+    //                         });
+    //                     }
 
-                    });
-                });
+    //                 });
+    //             });
 
-            }
+    //         }
 
-        });
-    });
+    //     });
+    // });
 
 
 

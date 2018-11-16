@@ -1,6 +1,6 @@
 var substrate = require('oo7-substrate');
 window = global;
-
+const {leHexToNumber}=require('./src/utils')
 //设置节点
 substrate.setNodeUri(['ws://127.0.0.1:8082']);
 //substrate.setNodeUri(['ws://192.168.1.237:8084']);
@@ -34,6 +34,7 @@ substrate.runtimeUp.then(() => {
         chain.block(header.parentHash).tie((block) => {
             //console.log(block)
             console.log('block#'+header.number);
+
             console.log('txs#'+block.block.extrinsics.length);
         });
     }));
