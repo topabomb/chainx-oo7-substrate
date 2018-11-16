@@ -350,12 +350,13 @@ class Token {
 
 class OrderT {
 
-	constructor(pair, index, ordertype, user, amount, hasfill_amount, price, create_time, lastupdate_time, status, fill_index) {
+	constructor(pair, index, ordertype, user, amount, channel, hasfill_amount, price, create_time, lastupdate_time, status, fill_index) {
 		this.pair = pair;
 		this.index = index;
 		this.ordertype = ordertype;
 		this.user = user;
 		this.amount = amount;
+		this.channel = channel;
 		this.hasfill_amount = hasfill_amount;
 		this.price = price;
 		this.create_time = create_time;
@@ -373,6 +374,7 @@ class OrderT {
 				'ordertype': this.ordertype,
 				'user': this.user,
 				'amount': this.amount,
+				'channel': this.channel,
 				'hasfill_amount': this.hasfill_amount,
 				'price': this.price,
 				'create_time': this.create_time,
@@ -475,7 +477,7 @@ class OrderStatus {
 }
 
 class TokenSymbol extends VecU8 { }
-class Channel extends VecU8{}
+class Channel extends VecU8 { }
 
 function reviver(key, bland) {
 	if (typeof bland == 'object' && bland) {
@@ -533,6 +535,7 @@ class MatchNodeT extends Struct { }
 class Bid extends Struct { }
 class BidDetailT extends Struct { }
 class FinancialRecord extends Struct { }
+class Nominations extends Struct {}
 
 module.exports = {
 	VecU8,
@@ -571,5 +574,6 @@ module.exports = {
 	Bid,
 	BidDetailT,
 	Channel,
-	FinancialRecord
+	FinancialRecord,
+	Nominations
 }

@@ -33,7 +33,8 @@ const {
 	MatchNodeT,
 	Bid,
 	BidDetailT,
-	FinancialRecord
+	FinancialRecord,
+	Nominations
 } = require('./types')
 const {
 	toLE,
@@ -356,8 +357,7 @@ function decode(input, type) {
 					input.data = input.data.slice(size);
 					break;
 				}
-			case 'Symbol':
-			case 'Channel':
+			case 'TokenSymbol':
 			case 'Vec<u8>':
 				{
 					let size = decode(input, 'Compact<u32>');
@@ -397,12 +397,12 @@ function decode(input, type) {
 					//console.log(input.data)
 					//input.data = input.data.slice(2);
 					decode(input, 'Compact<u32>');
-					let version=decode(input,'u32');
-					let parent=decode(input,'H256');
-					let merkle=decode(input,'H256');
-					let time=decode(input,'u32');
-					let bits=decode(input,'u32');
-					let nonce=decode(input,'u32');
+					let version = decode(input, 'u32');
+					let parent = decode(input, 'H256');
+					let merkle = decode(input, 'H256');
+					let time = decode(input, 'u32');
+					let bits = decode(input, 'u32');
+					let nonce = decode(input, 'u32');
 
 
 					res = new BtcBlockHeader(version, parent, merkle, time, bits, nonce);
@@ -489,6 +489,7 @@ function decode(input, type) {
 					let ordertype = decode(input, 'OrderType');
 					let user = decode(input, 'AccountId');
 					let amount = decode(input, 'Amount');
+					let channel = decode(input, 'AccountId')
 					let hasfill_amount = decode(input, 'Amount');
 					let price = decode(input, 'Price');
 					let create_time = decode(input, 'BlockNumber');
@@ -496,7 +497,7 @@ function decode(input, type) {
 					let status = decode(input, 'OrderStatus');
 					let fill_index = decode(input, 'Vec<u128>');
 
-					res = new OrderT(pair, index, ordertype, user, amount, hasfill_amount, price, create_time, lastupdate_time, status, fill_index);
+					res = new OrderT(pair, index, ordertype, user, amount, channel, hasfill_amount, price, create_time, lastupdate_time, status, fill_index);
 
 					break;
 				}
@@ -561,7 +562,7 @@ function decode(input, type) {
 				}
 			case 'Bid':
 				{
-					
+
 					res = new Bid(new Map([
 						['nodeid', decode(input, 'u128')],
 						['price', decode(input, 'Price')],
@@ -594,18 +595,31 @@ function decode(input, type) {
 					break;
 				}
 			case 'Record<Symbol, TokenBalance, BlockNumber>':
+				{
+
+					res = new FinancialRecord(new Map([
+						['action', decode(input, 'u8')],
+						['symbol', decode(input, 'Symbol')],
+						['balance', decode(input, 'Balance')],
+						['init_blocknum', decode(input, 'BlockNumber')],
+					]))
+					break;
+				}
+			case 'Nominations<T>':
 			{
-				
-				res=new FinancialRecord(new Map([
-					['action', decode(input, 'u8')],
-					['symbol', decode(input, 'Symbol')],
-					['balance', decode(input, 'Balance')],
-					['init_blocknum', decode(input, 'BlockNumber')],
+				res = new Nominations(new Map([
+					['data',decode(input,'CodecBTreeMap<(AccountId,NominationRecord<Balance, BlockNumber>)>')]
 				]))
 				break;
 			}
 			default:
 				{
+					let m= type.match(/CodecBTreeMap<(.*)>/);
+					if( m ) {
+						let size = decode(input, 'Compact<u32>');
+						res = [...new Array(size)].map(() => decode(input, v[1]));
+						break;
+					}
 					let v = type.match(/^Vec<(.*)>$/);
 					if (v) {
 						let size = decode(input, 'Compact<u32>');
@@ -693,13 +707,13 @@ function encode(value, type = null) {
 	}
 
 	// other type-specific transforms
-	if (type == 'Vec<u8>' || type.trim() == 'Symbol' ) {
+	if (type == 'Vec<u8>' || type.trim() == 'Symbol') {
 		if (typeof value == 'object' && value instanceof Uint8Array) {
 			return new Uint8Array([...encode(value.length, 'Compact<u32>'), ...value])
 		}
 	}
-	if( type.trim()== 'Channel' ){
-		if( typeof value == 'string' ){
+	if (type.trim() == 'Channel') {
+		if (typeof value == 'string') {
 			return new Uint8Array([...encode(value.length, 'Compact<u32>'), ...value])
 		}
 	}
@@ -809,7 +823,7 @@ function encode(value, type = null) {
 	}
 
 	if (type.trim() == 'OrderPair' && typeof value == 'object') {
-
+		
 		return new Uint8Array([...encode(value.first.length, 'Compact<u32>'), ...stringToBytes(value.first), ...encode(value.second.length, 'Compact<u32>'), ...stringToBytes(value.second), ...toLE(value.precision, 4)]);
 	}
 	if (type.trim() == 'Token' && typeof value == 'object') {
